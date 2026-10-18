@@ -1,848 +1,411 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo dos Ângulos - MediaPipe Hands</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
-<title>Assistente Criativo Educacional | Prof. Michel Brenner</title>
-
-<style>
-
-:root{
-    --primary:#2563eb;
-    --primary-dark:#1d4ed8;
-    --secondary:#7c3aed;
-    --secondary-dark:#6d28d9;
-    --success:#10b981;
-    --success-dark:#059669;
-
-    --bg:#f1f5f9;
-    --panel:#ffffff;
-    --text:#334155;
-    --muted:#64748b;
-    --border:#e2e8f0;
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
-}
-
-body{
-    background:var(--bg);
-    color:var(--text);
-    padding:25px;
-}
-
-.header{
-    text-align:center;
-    margin-bottom:30px;
-}
-
-.header h1{
-    font-size:2.4rem;
-    color:var(--primary);
-    margin-bottom:10px;
-}
-
-.header p{
-    color:var(--muted);
-    font-size:1rem;
-}
-
-.wrapper{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-    max-width:1400px;
-    margin:auto;
-}
-
-.panel{
-    background:var(--panel);
-    border-radius:18px;
-    padding:25px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.05);
-}
-
-.tabs{
-    display:flex;
-    gap:10px;
-    margin-bottom:25px;
-    flex-wrap:wrap;
-}
-
-.tab-btn{
-    border:none;
-    background:#e2e8f0;
-    color:#475569;
-    padding:12px 18px;
-    border-radius:10px;
-    font-weight:bold;
-    cursor:pointer;
-    transition:.2s;
-}
-
-.tab-btn.active{
-    background:var(--primary);
-    color:white;
-}
-
-.tab-content{
-    display:none;
-}
-
-.tab-content.active{
-    display:block;
-}
-
-.form-group{
-    margin-bottom:18px;
-}
-
-label{
-    display:block;
-    margin-bottom:8px;
-    font-weight:bold;
-}
-
-input,
-select,
-textarea{
-    width:100%;
-    padding:13px;
-    border-radius:12px;
-    border:1px solid var(--border);
-    background:#f8fafc;
-    font-size:15px;
-}
-
-input:focus,
-select:focus,
-textarea:focus{
-    outline:none;
-    border-color:var(--primary);
-    background:white;
-}
-
-textarea{
-    resize:vertical;
-}
-
-.btn{
-    width:100%;
-    border:none;
-    padding:16px;
-    border-radius:12px;
-    font-weight:bold;
-    color:white;
-    cursor:pointer;
-    transition:.2s;
-    margin-top:10px;
-    font-size:15px;
-}
-
-.btn-info{
-    background:var(--primary);
-}
-
-.btn-info:hover{
-    background:var(--primary-dark);
-}
-
-.btn-capa{
-    background:var(--secondary);
-}
-
-.btn-capa:hover{
-    background:var(--secondary-dark);
-}
-
-.btn-ex{
-    background:var(--success);
-}
-
-.btn-ex:hover{
-    background:var(--success-dark);
-}
-
-.result{
-    background:#0f172a;
-    color:#f8fafc;
-    border-radius:14px;
-    padding:20px;
-    min-height:650px;
-    white-space:pre-wrap;
-    overflow:auto;
-    font-family:monospace;
-    line-height:1.5;
-}
-
-.copy-btn{
-    margin-top:15px;
-    background:#f59e0b;
-}
-
-.copy-btn:hover{
-    background:#d97706;
-}
-
-.section-title{
-    font-size:13px;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    color:var(--primary);
-    margin:20px 0 10px;
-    font-weight:bold;
-}
-
-.badge{
-    background:#dbeafe;
-    color:#1d4ed8;
-    padding:3px 8px;
-    border-radius:6px;
-    font-size:11px;
-}
-
-.hint{
-    font-size:13px;
-    color:var(--muted);
-    margin-top:5px;
-}
-
-@media(max-width:1000px){
-
-    .wrapper{
-        grid-template-columns:1fr;
-    }
-
-}
-
-</style>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #111827; color: white; font-family: 'Inter', sans-serif; }
+        .canvas-container { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        #output_canvas {
+            transform: scaleX(-1); /* Espelha a câmera para ficar como um espelho */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Animações customizadas */
+        @keyframes pulse-border {
+            0% { border-color: rgba(255, 255, 255, 0.2); }
+            50% { border-color: rgba(255, 255, 255, 0.8); }
+            100% { border-color: rgba(255, 255, 255, 0.2); }
+        }
+        .anim-pulse-border { animation: pulse-border 2s infinite; border: 4px solid transparent; }
+        
+        @keyframes pop-in {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in { animation: pop-in 0.3s ease-out forwards; }
+    </style>
 </head>
+<body class="h-screen w-screen flex flex-col md:flex-row p-4 gap-4 bg-gray-900">
 
-<body>
+    <!-- Painel Lateral -->
+    <div class="w-full md:w-1/3 lg:w-1/4 bg-gray-800 rounded-2xl p-6 flex flex-col shadow-2xl z-10 border border-gray-700">
+        <h1 class="text-3xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            Jogo dos Ângulos
+        </h1>
+        <p class="text-gray-400 text-sm mb-6">Abra a mão (polegar e mindinho) para reproduzir a abertura solicitada.</p>
 
-<div class="header">
-    <h1>🚀 Assistente Criativo Educacional</h1>
-    <p>
-        Gere prompts profissionais para infográficos, capas e exercícios didáticos.
-    </p>
-</div>
-
-<div class="wrapper">
-
-    <!-- CONFIGURAÇÕES -->
-    <div class="panel">
-
-        <div class="tabs">
-
-            <button class="tab-btn active"
-            onclick="switchTab('infografico', this)">
-            📊 Infográfico
-            </button>
-
-            <button class="tab-btn"
-            onclick="switchTab('capa', this)">
-            📘 Capa
-            </button>
-
-            <button class="tab-btn"
-            onclick="switchTab('exercicios', this)">
-            📝 Exercícios
-            </button>
-
+        <!-- Status de Carregamento -->
+        <div id="loading" class="flex flex-col items-center justify-center py-10">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+            <p class="text-blue-400 font-semibold">Iniciando câmera e IA...</p>
         </div>
 
-        <!-- INFOGRÁFICO -->
-        <div id="infografico" class="tab-content active">
-
-            <div class="section-title">
-                Conteúdo Educacional
-            </div>
-
-            <div class="form-group">
-                <label>📌 Disciplina</label>
-                <input type="text"
-                id="info-disciplina"
-                value="Matemática">
-            </div>
-
-            <div class="form-group">
-                <label>🎯 Assunto</label>
-                <input type="text"
-                id="info-assunto"
-                value="Função Exponencial">
-            </div>
-
-            <div class="form-group">
-                <label>👥 Público-Alvo</label>
-
-                <select id="info-publico">
-                    <option>Ensino Fundamental I</option>
-                    <option>Ensino Fundamental II</option>
-                    <option selected>Ensino Médio</option>
-                    <option>Ensino Superior</option>
-                </select>
-            </div>
-
-            <div class="section-title">
-                Avatar do Professor
-            </div>
-
-            <div class="form-group">
-
-                <label>
-                    👤 Descrição do Personagem
-                    <span class="badge">
-                        salvo automaticamente
-                    </span>
-                </label>
-
-                <textarea
-                id="avatar-desc"
-                rows="4">Professor sorridente, cabelo curto preto e camisa gola redonda azul escura, pele morena.</textarea>
-
-                <div class="hint">
-                    Dica: envie sua foto para IA e peça uma descrição física detalhada.
+        <!-- Área de Jogo (Oculta até carregar) -->
+        <div id="game-area" class="hidden flex-col items-center flex-grow">
+            
+            <div class="bg-gray-900 p-4 rounded-xl w-full text-center mb-6 border border-gray-700 shadow-inner">
+                <p class="text-gray-400 text-sm uppercase tracking-wider mb-1">Alvo atual</p>
+                <h2 id="target-name" class="text-3xl font-bold mb-2">-</h2>
+                <div class="flex justify-center items-center gap-2">
+                    <span class="text-xl text-gray-500">Abertura:</span>
+                    <span id="target-angle-text" class="text-4xl font-mono font-bold text-white">0°</span>
                 </div>
-
             </div>
 
-            <div class="form-group">
-                <label>🎨 Estilo Visual</label>
-
-                <select id="avatar-estilo">
-
-                    <option selected>
-                        Disney Pixar 3D educational infographic style, ultra detailed, professional Brazilian school material
-                    </option>
-
-                    <option>
-                        Hand-drawn doodle educational style
-                    </option>
-
-                    <option>
-                        Minimalist vector infographic style
-                    </option>
-
-                </select>
+            <!-- Canvas para desenhar o alvo visualmente -->
+            <div class="relative w-48 h-48 mb-8">
+                <canvas id="target_canvas" width="200" height="200" class="w-full h-full bg-gray-800 rounded-full border-4 border-gray-700 shadow-lg"></canvas>
             </div>
 
-            <button
-            class="btn btn-info"
-            onclick="gerarPrompt('infografico')">
-            ✨ Gerar Infográfico Profissional
-            </button>
-
+            <!-- Feedback de Sucesso -->
+            <div id="success-message" class="hidden w-full bg-green-500/20 border border-green-500 rounded-xl p-4 text-center pop-in mt-auto">
+                <p class="text-green-400 font-bold text-xl mb-1">Excelente!</p>
+                <p class="text-green-200 text-sm">Ângulo alcançado. Preparando próximo...</p>
+            </div>
+            
+            <!-- Barra de Progresso de captura -->
+            <div class="w-full h-3 bg-gray-700 rounded-full mt-4 overflow-hidden">
+                <div id="hold-progress" class="h-full bg-blue-500 w-0 transition-all duration-100 ease-linear"></div>
+            </div>
         </div>
-
-        <!-- CAPA -->
-        <div id="capa" class="tab-content">
-
-            <div class="section-title">
-                Configuração da Capa
-            </div>
-
-            <div class="form-group">
-                <label>📚 Disciplina / Tema</label>
-                <input type="text"
-                id="capa-disciplina"
-                value="Função Exponencial">
-            </div>
-
-            <div class="form-group">
-                <label>🔤 Texto Superior</label>
-                <input type="text"
-                id="capa-top"
-                value="Apostila Visual">
-            </div>
-
-            <div class="form-group">
-                <label>📝 Texto Inferior</label>
-                <input type="text"
-                id="capa-bottom"
-                value="Aprenda de forma visual e organizada">
-            </div>
-
-            <div class="form-group">
-                <label>🎨 Estilo Visual</label>
-
-                <select id="capa-estilo">
-
-                    <option selected>
-                        Rich Brazilian educational cover style, ultra detailed
-                    </option>
-
-                    <option>
-                        Hand-drawn doodle notebook style
-                    </option>
-
-                    <option>
-                        Disney Pixar educational style
-                    </option>
-
-                </select>
-            </div>
-
-            <button
-            class="btn btn-capa"
-            onclick="gerarPrompt('capa')">
-            📘 Gerar Prompt de Capa
-            </button>
-
-        </div>
-
-        <!-- EXERCÍCIOS -->
-        <div id="exercicios" class="tab-content">
-
-            <div class="section-title">
-                Configuração dos Exercícios
-            </div>
-
-            <div class="form-group">
-                <label>📌 Disciplina</label>
-                <input type="text"
-                id="ex-disciplina"
-                value="Matemática">
-            </div>
-
-            <div class="form-group">
-                <label>🎯 Conteúdo</label>
-                <input type="text"
-                id="ex-assunto"
-                value="Função Exponencial">
-            </div>
-
-            <div class="form-group">
-                <label>👥 Nível Escolar</label>
-
-                <select id="ex-publico">
-                    <option>Ensino Fundamental I</option>
-                    <option>Ensino Fundamental II</option>
-                    <option selected>Ensino Médio</option>
-                    <option>Ensino Superior</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>🔢 Quantidade de Questões</label>
-                <input type="number"
-                id="ex-qtd"
-                value="10">
-            </div>
-
-            <div class="form-group">
-                <label>📋 Tipo</label>
-
-                <select id="ex-tipo">
-
-                    <option selected>
-                        Mistas (objetivas e discursivas)
-                    </option>
-
-                    <option>
-                        Múltipla escolha
-                    </option>
-
-                    <option>
-                        Discursivas
-                    </option>
-
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>🧠 Estilo</label>
-
-                <select id="ex-contexto">
-
-                    <option selected>
-                        Modelo ENEM com contextualização
-                    </option>
-
-                    <option>
-                        Direto e objetivo
-                    </option>
-
-                    <option>
-                        Situações do cotidiano
-                    </option>
-
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>✅ Gabarito Comentado?</label>
-
-                <select id="ex-gabarito">
-                    <option selected>Sim</option>
-                    <option>Não</option>
-                </select>
-            </div>
-
-            <button
-            class="btn btn-ex"
-            onclick="gerarPrompt('exercicios')">
-            📝 Gerar Exercícios
-            </button>
-
-        </div>
-
     </div>
 
-    <!-- RESULTADO -->
-    <div class="panel">
-
-        <h2 style="margin-bottom:20px;">
-            🤖 Prompt Gerado
-        </h2>
-
-        <div class="result" id="resultado">
-Configure os campos ao lado para gerar o prompt.
+    <!-- Câmera e Overlay -->
+    <div class="w-full md:w-2/3 lg:w-3/4 bg-black rounded-2xl relative overflow-hidden anim-pulse-border flex-grow">
+        <video id="input_video" class="hidden"></video>
+        <canvas id="output_canvas"></canvas>
+        
+        <!-- HUD Overlay na câmera -->
+        <div class="absolute top-6 left-6 bg-black/60 backdrop-blur-md px-6 py-4 rounded-xl border border-gray-600/50 shadow-xl pointer-events-none">
+            <p class="text-gray-300 text-sm mb-1 uppercase tracking-wide">Sua Mão</p>
+            <div class="flex items-baseline gap-2">
+                <span id="current-angle" class="text-5xl font-mono font-bold text-white">--°</span>
+            </div>
+            <p id="current-class" class="text-lg font-semibold mt-1">Detectando...</p>
         </div>
-
-        <button
-        class="btn copy-btn"
-        onclick="copiarPrompt()">
-        📋 Copiar Prompt
-        </button>
-
+        
+        <!-- Instrução flutuante -->
+        <div id="camera-hint" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-blue-500/80 backdrop-blur px-4 py-2 rounded-full text-white text-sm font-medium">
+            Use o Polegar e o Mindinho
+        </div>
     </div>
 
-</div>
-
-<script>
-
-// =====================================
-// SALVAR AVATAR
-// =====================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const avatarSalvo =
-    localStorage.getItem("avatarProfessor");
-
-    if(avatarSalvo){
-
-        document.getElementById(
-        "avatar-desc").value = avatarSalvo;
-
-    }
-
-});
-
-document.getElementById(
-"avatar-desc").addEventListener("input", () => {
-
-    localStorage.setItem(
-    "avatarProfessor",
-
-    document.getElementById(
-    "avatar-desc").value
-
-    );
-
-});
-
-// =====================================
-// TABS
-// =====================================
-
-function switchTab(id, btn){
-
-    document.querySelectorAll(
-    ".tab-content")
-    .forEach(el => el.classList.remove("active"));
-
-    document.querySelectorAll(
-    ".tab-btn")
-    .forEach(el => el.classList.remove("active"));
-
-    document.getElementById(id)
-    .classList.add("active");
-
-    btn.classList.add("active");
-
-}
-
-// =====================================
-// GERADOR
-// =====================================
-
-function gerarPrompt(tipo){
-
-    let prompt = "";
-
-    // =================================
-    // INFOGRÁFICO
-    // =================================
-
-    if(tipo === "infografico"){
-
-        const disciplina =
-        document.getElementById(
-        "info-disciplina").value;
-
-        const assunto =
-        document.getElementById(
-        "info-assunto").value;
-
-        const publico =
-        document.getElementById(
-        "info-publico").value;
-
-        const avatar =
-        document.getElementById(
-        "avatar-desc").value;
-
-        const estilo =
-        document.getElementById(
-        "avatar-estilo").value;
-
-prompt = `Crie um pôster educacional em formato retrato vertical (folha A4) extremamente detalhado, organizado e didático sobre o assunto "${assunto}" para a disciplina de ${disciplina}.
-
-PÚBLICO-ALVO:
-Estudantes do ${publico}.
-
-OBJETIVO VISUAL:
-O material deve parecer uma mistura de:
-- apostila visual profissional brasileira,
-- resumo de quadro,
-- ficha de revisão escolar,
-- infográfico didático completo.
-
-O conteúdo deve ser pensado para:
-- professores explicarem no quadro,
-- alunos copiarem,
-- servir como base para resolução de exercícios.
-
-ESTRUTURA OBRIGATÓRIA:
-O layout deve possuir MUITOS BLOCOS ORGANIZADOS, numerados e separados visualmente.
-
-Organize o conteúdo em seções como:
-1. Definição
-2. Conceitos importantes
-3. Fórmulas
-4. Propriedades
-5. Exemplos resolvidos
-6. Gráficos ou figuras
-7. Aplicações práticas
-8. Exercícios rápidos
-9. Resumo final
-
-DENSIDADE DE CONTEÚDO:
-- O pôster deve possuir MUITO CONTEÚDO VISÍVEL.
-- Priorize textos explicativos curtos, fórmulas matemáticas, exemplos resolvidos, diagramas e tabelas.
-- Evite grandes espaços vazios.
-- O conteúdo deve ocupar praticamente toda a folha.
-- Cada bloco deve conter:
-  - título,
-  - explicação curta,
-  - fórmulas destacadas,
-  - exemplos visuais.
-
-ESTILO DE ORGANIZAÇÃO:
-- Fundo branco ou papel de caderno extremamente suave.
-- Caixas organizadas com bordas arredondadas.
-- Cada seção deve ter uma cor própria suave e harmônica.
-- Use tipografia grande e legível.
-- Aparência limpa, acadêmica e extremamente organizada.
-- Visual semelhante a materiais de revisão premium do Canva.
-
-GRÁFICOS E FIGURAS:
-- Use gráficos, figuras geométricas, esquemas, diagramas e ilustrações SOMENTE quando forem realmente úteis para explicar o conteúdo.
-- As figuras devem ser educativas e não decorativas.
-- Fórmulas matemáticas devem estar matematicamente corretas.
-
-USO DO PERSONAGEM:
-- O material deve conter o seguinte personagem:
-"${avatar}"
-
-- O personagem deve aparecer como professor/instrutor visual.
-- Use o personagem apenas em pontos estratégicos:
-  - canto superior,
-  - segurando placas,
-  - apontando fórmulas,
-  - dando dicas,
-  - próximo de exemplos.
-- O personagem NÃO deve ocupar muito espaço.
-- O conteúdo é mais importante que o personagem.
-
-ESTILO VISUAL:
-Siga rigorosamente o estilo:
-"${estilo}"
-
-QUALIDADE VISUAL:
-- aparência ultra detalhada,
-- cores vibrantes mas organizadas,
-- estética profissional,
-- composição rica,
-- design moderno educacional brasileiro,
-- estilo infográfico premium.
-
-IMPORTANTE:
-- NÃO gerar visual minimalista.
-- NÃO deixar áreas vazias.
-- NÃO criar excesso de elementos decorativos aleatórios.
-- Priorizar organização didática.
-- Priorizar conteúdo educativo.
-- O resultado final deve parecer um material completo de revisão escolar profissional.
-
-Render vertical A4, proporção 3:4.`;
-
-    }
-
-    // =================================
-    // CAPA
-    // =================================
-
-    if(tipo === "capa"){
-
-        const disciplina =
-        document.getElementById(
-        "capa-disciplina").value;
-
-        const top =
-        document.getElementById(
-        "capa-top").value;
-
-        const bottom =
-        document.getElementById(
-        "capa-bottom").value;
-
-        const estilo =
-        document.getElementById(
-        "capa-estilo").value;
-
-prompt = `Crie uma capa premium de apostila educacional brasileira sobre "${disciplina}".
-
-ESTRUTURA:
-- Texto superior: "${top}"
-- Título principal: "${disciplina}"
-- Texto inferior: "${bottom}"
-
-VISUAL:
-- Aparência extremamente profissional.
-- Design rico em detalhes.
-- Composição dinâmica.
-- Fundo estilo papel de caderno ou elementos escolares sofisticados.
-- Ícones e ilustrações relacionados diretamente ao conteúdo.
-- Tipografia grande e impactante.
-- Organização semelhante a capas premium do Canva.
-
-ESTILO:
-${estilo}
-
-QUALIDADE:
-- ultra detailed
-- educational design
-- vibrant colors
-- Brazilian school material
-- modern educational poster
-- professional academic composition
-
-Formato vertical A4.`;
-
-    }
-
-    // =================================
-    // EXERCÍCIOS
-    // =================================
-
-    if(tipo === "exercicios"){
-
-        const disciplina =
-        document.getElementById(
-        "ex-disciplina").value;
-
-        const assunto =
-        document.getElementById(
-        "ex-assunto").value;
-
-        const publico =
-        document.getElementById(
-        "ex-publico").value;
-
-        const qtd =
-        document.getElementById(
-        "ex-qtd").value;
-
-        const tipoQuestao =
-        document.getElementById(
-        "ex-tipo").value;
-
-        const contexto =
-        document.getElementById(
-        "ex-contexto").value;
-
-        const gabarito =
-        document.getElementById(
-        "ex-gabarito").value;
-
-prompt = `Atue como um professor especialista em ${disciplina}.
-
-Crie uma lista com ${qtd} exercícios inéditos sobre "${assunto}".
-
-PÚBLICO:
-${publico}
-
-TIPO:
-${tipoQuestao}
-
-ESTILO:
-${contexto}
-
-REQUISITOS:
-- Questões claras e organizadas.
-- Linguagem adequada ao público.
-- Nível progressivo.
-- Misturar interpretação, teoria e cálculo.
-- Contextualização estilo ENEM quando necessário.
-- Alternativas plausíveis.
-- Organização profissional de apostila.
-
-ESTRUTURA:
-1. Questões básicas
-2. Questões intermediárias
-3. Questões avançadas
-4. Desafio final
-
-FORMATAÇÃO:
-- Numeração organizada.
-- Espaço entre questões.
-- Aparência de material escolar profissional.
-
-${gabarito === "Sim"
-? "Adicionar gabarito comentado detalhado ao final."
-: "Não adicionar gabarito."}`;
-
-    }
-
-    document.getElementById(
-    "resultado").textContent = prompt;
-
-}
-
-// =====================================
-// COPIAR
-// =====================================
-
-function copiarPrompt(){
-
-    const texto =
-    document.getElementById(
-    "resultado").textContent;
-
-    navigator.clipboard.writeText(texto);
-
-    alert("Prompt copiado com sucesso!");
-
-}
-
-</script>
-
+    <script>
+        // Elementos DOM
+        const videoElement = document.getElementById('input_video');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const targetCanvas = document.getElementById('target_canvas');
+        const targetCtx = targetCanvas.getContext('2d');
+        
+        const uiElements = {
+            loading: document.getElementById('loading'),
+            gameArea: document.getElementById('game-area'),
+            targetName: document.getElementById('target-name'),
+            targetAngleText: document.getElementById('target-angle-text'),
+            currentAngle: document.getElementById('current-angle'),
+            currentClass: document.getElementById('current-class'),
+            holdProgress: document.getElementById('hold-progress'),
+            successMessage: document.getElementById('success-message'),
+            cameraHint: document.getElementById('camera-hint')
+        };
+
+        // Definição das classes de ângulos
+        const ANGLE_CLASSES = {
+            ACUTE: { id: 'acute', name: 'Agudo', min: 15, max: 80, color: '#0ea5e9', tailwind: 'text-sky-500' },     // Azul
+            RIGHT: { id: 'right', name: 'Reto', min: 80, max: 100, color: '#84cc16', tailwind: 'text-lime-500' },    // Verde
+            OBTUSE: { id: 'obtuse', name: 'Obtuso', min: 100, max: 150, color: '#f59e0b', tailwind: 'text-amber-500' },// Laranja
+            STRAIGHT: { id: 'straight', name: 'Raso', min: 150, max: 180, color: '#ef4444', tailwind: 'text-red-500' } // Vermelho
+        };
+
+        // Estado do Jogo
+        let gameState = {
+            currentTarget: null,
+            targetAngleValue: 0,
+            holdFrames: 0,
+            requiredHoldFrames: 30, // Cerca de 1 segundo a 30fps
+            isPaused: false,
+            tolerance: 12 // +/- 12 graus de tolerância
+        };
+
+        // Função para calcular ângulo entre 3 pontos (p1 = polegar, p2 = pulso(vértice), p3 = mindinho)
+        function calculateAngle(p1, p2, p3) {
+            const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+            const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+            
+            const dot = v1.x * v2.x + v1.y * v2.y;
+            const mag1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y);
+            const mag2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y);
+            
+            // Evitar divisão por zero
+            if (mag1 * mag2 === 0) return 0;
+            
+            let angleRad = Math.acos(Math.max(-1, Math.min(1, dot / (mag1 * mag2))));
+            return Math.round(angleRad * (180 / Math.PI));
+        }
+
+        // Classificar o ângulo atual
+        function classifyAngle(angle) {
+            if (angle < 85) return ANGLE_CLASSES.ACUTE;
+            if (angle <= 95) return ANGLE_CLASSES.RIGHT;
+            if (angle < 160) return ANGLE_CLASSES.OBTUSE;
+            return ANGLE_CLASSES.STRAIGHT;
+        }
+
+        // Gerar um novo desafio
+        function generateNewTarget() {
+            const types = Object.values(ANGLE_CLASSES);
+            // Escolhe um tipo aleatório
+            const selectedType = types[Math.floor(Math.random() * types.length)];
+            
+            // Escolhe um valor específico dentro da faixa do tipo
+            let specificAngle;
+            if (selectedType.id === 'right') specificAngle = 90;
+            else if (selectedType.id === 'straight') specificAngle = 180;
+            else {
+                // Aleatório dentro do range para agudo e obtuso
+                specificAngle = Math.floor(Math.random() * (selectedType.max - selectedType.min)) + selectedType.min;
+            }
+
+            gameState.currentTarget = selectedType;
+            gameState.targetAngleValue = specificAngle;
+            gameState.holdFrames = 0;
+            gameState.isPaused = false;
+
+            // Atualiza UI
+            uiElements.targetName.innerText = `Ângulo ${selectedType.name}`;
+            uiElements.targetName.className = `text-3xl font-bold mb-2 ${selectedType.tailwind}`;
+            uiElements.targetAngleText.innerText = `${specificAngle}°`;
+            uiElements.targetAngleText.className = `text-4xl font-mono font-bold ${selectedType.tailwind}`;
+            uiElements.successMessage.classList.add('hidden');
+            uiElements.holdProgress.style.width = '0%';
+            uiElements.holdProgress.className = `h-full transition-all duration-100 ease-linear bg-${selectedType.tailwind.split('-')[1]}-500`;
+
+            drawTargetAngleCanvas(specificAngle, selectedType.color);
+        }
+
+        // Desenhar o ângulo alvo no canvas lateral
+        function drawTargetAngleCanvas(angle, color) {
+            const ctx = targetCtx;
+            const cx = 100, cy = 100, radius = 60;
+            ctx.clearRect(0, 0, 200, 200);
+
+            // Linha base (0 graus)
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + radius, cy);
+            ctx.strokeStyle = '#4b5563'; // gray-600
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Linha do ângulo
+            const angleRad = -angle * (Math.PI / 180); // Negativo porque Y cresce pra baixo no canvas
+            const endX = cx + radius * Math.cos(angleRad);
+            const endY = cy + radius * Math.sin(angleRad);
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            // Arco indicativo
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.5, angleRad, 0, false);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Fundo do arco
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius * 0.5, angleRad, 0, false);
+            ctx.fillStyle = color + '40'; // 25% opacity
+            ctx.fill();
+        }
+
+        // Callback processando resultados do MediaPipe
+        function onResults(results) {
+            // Ajustar tamanho do canvas
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            // Espelhar contexto pois aplicamos transform: scaleX(-1) no CSS,
+            // mas precisamos desenhar na posição correta da imagem raw
+            canvasCtx.translate(canvasElement.width, 0);
+            canvasCtx.scale(-1, 1);
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                uiElements.cameraHint.classList.add('hidden'); // Esconde dica se detectou mão
+                
+                const landmarks = results.multiHandLandmarks[0]; // Pega a primeira mão
+                
+                // Pontos de interesse: 0 (Pulso), 4 (Ponta Polegar), 20 (Ponta Mindinho)
+                const wrist = landmarks[0];
+                const thumbTip = landmarks[4];
+                const pinkyTip = landmarks[20];
+
+                // Desenhar a mão sutilmente
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {color: 'rgba(255, 255, 255, 0.2)', lineWidth: 2});
+                drawLandmarks(canvasCtx, landmarks, {color: 'rgba(255, 255, 255, 0.5)', lineWidth: 1, radius: 2});
+
+                // Calcular Ângulo
+                const p1 = { x: thumbTip.x * canvasElement.width, y: thumbTip.y * canvasElement.height };
+                const vertex = { x: wrist.x * canvasElement.width, y: wrist.y * canvasElement.height };
+                const p2 = { x: pinkyTip.x * canvasElement.width, y: pinkyTip.y * canvasElement.height };
+
+                const currentAngle = calculateAngle(p1, vertex, p2);
+                const currentClassification = classifyAngle(currentAngle);
+
+                // Desenhar vetores fortes para o ângulo
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(vertex.x, vertex.y);
+                canvasCtx.lineTo(p1.x, p1.y);
+                canvasCtx.moveTo(vertex.x, vertex.y);
+                canvasCtx.lineTo(p2.x, p2.y);
+                canvasCtx.strokeStyle = currentClassification.color;
+                canvasCtx.lineWidth = 6;
+                canvasCtx.lineCap = 'round';
+                canvasCtx.lineJoin = 'round';
+                canvasCtx.stroke();
+
+                // Desenhar vértices principais
+                [p1, vertex, p2].forEach(p => {
+                    canvasCtx.beginPath();
+                    canvasCtx.arc(p.x, p.y, 8, 0, 2 * Math.PI);
+                    canvasCtx.fillStyle = currentClassification.color;
+                    canvasCtx.fill();
+                    canvasCtx.strokeStyle = '#fff';
+                    canvasCtx.lineWidth = 2;
+                    canvasCtx.stroke();
+                });
+
+                // Desenhar arco do ângulo
+                let startAngle = Math.atan2(p1.y - vertex.y, p1.x - vertex.x);
+                let endAngle = Math.atan2(p2.y - vertex.y, p2.x - vertex.x);
+                
+                // Garantir que desenhamos o menor arco
+                let diff = endAngle - startAngle;
+                while (diff <= -Math.PI) diff += 2 * Math.PI;
+                while (diff > Math.PI) diff -= 2 * Math.PI;
+                endAngle = startAngle + diff;
+
+                canvasCtx.beginPath();
+                // Determina sentido do desenho para preencher o ângulo interno
+                canvasCtx.arc(vertex.x, vertex.y, 50, startAngle, endAngle, diff < 0);
+                canvasCtx.strokeStyle = currentClassification.color;
+                canvasCtx.lineWidth = 3;
+                canvasCtx.stroke();
+                
+                canvasCtx.lineTo(vertex.x, vertex.y);
+                canvasCtx.fillStyle = currentClassification.color + '40'; // 25% opacity
+                canvasCtx.fill();
+
+                // Atualizar HUD
+                uiElements.currentAngle.innerText = `${currentAngle}°`;
+                uiElements.currentAngle.style.color = currentClassification.color;
+                uiElements.currentClass.innerText = currentClassification.name;
+                uiElements.currentClass.style.color = currentClassification.color;
+
+                // Lógica de Sucesso
+                if (!gameState.isPaused && gameState.currentTarget) {
+                    // Verifica se está dentro da tolerância do alvo específico
+                    const isMatch = Math.abs(currentAngle - gameState.targetAngleValue) <= gameState.tolerance;
+
+                    if (isMatch) {
+                        gameState.holdFrames++;
+                        const progress = Math.min(100, (gameState.holdFrames / gameState.requiredHoldFrames) * 100);
+                        uiElements.holdProgress.style.width = `${progress}%`;
+
+                        if (gameState.holdFrames >= gameState.requiredHoldFrames) {
+                            // SUCESSO!
+                            gameState.isPaused = true;
+                            uiElements.successMessage.classList.remove('hidden');
+                            
+                            // Aguarda 2 segundos e gera novo alvo
+                            setTimeout(() => {
+                                generateNewTarget();
+                            }, 2000);
+                        }
+                    } else {
+                        // Reseta progresso se sair da posição
+                        gameState.holdFrames = Math.max(0, gameState.holdFrames - 2); // Decai rápido
+                        uiElements.holdProgress.style.width = `${(gameState.holdFrames / gameState.requiredHoldFrames) * 100}%`;
+                    }
+                }
+            } else {
+                // Sem mãos
+                uiElements.currentAngle.innerText = '--°';
+                uiElements.currentClass.innerText = 'Mão não detectada';
+                uiElements.currentClass.style.color = '#9ca3af';
+                uiElements.cameraHint.classList.remove('hidden');
+                
+                if(!gameState.isPaused) {
+                    gameState.holdFrames = 0;
+                    uiElements.holdProgress.style.width = '0%';
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        // Inicializar Hands
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+
+        hands.onResults(onResults);
+
+        // Inicializar Câmera
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+
+        // Iniciar tudo
+        camera.start().then(() => {
+            // Ocultar loading e mostrar game area
+            uiElements.loading.classList.add('hidden');
+            uiElements.gameArea.classList.remove('hidden');
+            uiElements.gameArea.classList.add('flex');
+            
+            // Iniciar primeiro alvo
+            generateNewTarget();
+        }).catch(err => {
+            console.error(err);
+            uiElements.loading.innerHTML = '<p class="text-red-500 font-bold">Erro ao acessar a câmera. Verifique as permissões.</p>';
+        });
+
+    </script>
 </body>
 </html>
