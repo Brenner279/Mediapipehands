@@ -38,7 +38,7 @@ footer{color:#91a8c1;font-size:.8rem;padding:0 20px 20px;max-width:1500px;margin
 <div id="answers" class="answer-list"></div>
 <div class="actions"><button id="next" class="primary">Próximo desafio →</button><button id="reset">Reiniciar</button></div>
 <h2>Como controlar</h2>
-<p class="muted"><b>Webcam:</b> mostre uma mão, mova o indicador para posicionar o cursor e junte polegar e indicador para marcar o ponto.</p>
+<p class="muted"><b>Webcam:</b> mova o ponto com o dedo indicador. Feche a mão em punho para fixar o ponto no plano.</p>
 <p class="muted"><b>Sem câmera:</b> clique ou toque no plano para posicionar o cursor e depois use “Marcar ponto”.</p>
 <div class="actions"><button id="cameraToggle" class="primary">Ativar webcam</button><button id="mark">Marcar ponto</button></div>
 <div id="status" role="status">Modo toque/clique disponível. Ative a webcam para controlar com gestos.</div>
@@ -54,7 +54,7 @@ footer{color:#91a8c1;font-size:.8rem;padding:0 20px 20px;max-width:1500px;margin
 const canvas=document.getElementById('plane'),ctx=canvas.getContext('2d'),video=document.getElementById('camera');
 const $=id=>document.getElementById(id);
 const W=canvas.width,H=canvas.height,ox=W/2,oy=H/2,unit=42,minX=-9,maxX=9,minY=-6,maxY=6;
-let mode='locate',score=0,hits=0,target={x:3,y:2},cursor={x:0,y:0},hasCursor=false,selected=[],handReady=false,pinchWas=false,stream=null,model=null,cameraRunning=false;
+let mode='locate',score=0,hits=0,target={x:3,y:2},cursor={x:0,y:0},hasCursor=false,selected=[],fixedPoints=[],fistWas=false,fistFrames=0,stream=null,model=null,cameraRunning=false;
 function toCanvas(x,y){return{x:ox+x*unit,y:oy-y*unit}}
 function toCoord(px,py){return{x:Math.max(minX,Math.min(maxX,Math.round((px-ox)/unit))),y:Math.max(minY,Math.min(maxY,Math.round((oy-py)/unit)))}}
 function draw(){
@@ -66,6 +66,7 @@ function draw(){
  ctx.fillStyle='#d9e9fa';ctx.font='15px system-ui';ctx.fillText('x',W-30,oy-12);ctx.fillText('y',ox+12,28);ctx.fillText('O',ox+8,oy+20);
  for(let x=minX;x<=maxX;x++){if(x===0)continue;let p=toCanvas(x,0);ctx.fillText(x,p.x-5,oy+22)}
  for(let y=minY;y<=maxY;y++){if(y===0)continue;let p=toCanvas(0,y);ctx.fillText(y,ox+10,toCanvas(0,y).y+5)}
+ fixedPoints.forEach(p=>drawPoint(p.x,p.y,'✓','#8cf0b0'));
  if(mode==='draw'&&selected.length){ctx.strokeStyle='#ffd166';ctx.lineWidth=4;ctx.beginPath();selected.forEach((p,i)=>{let q=toCanvas(p.x,p.y);if(i===0)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y)});if(selected.length===3){let q=toCanvas(selected[0].x,selected[0].y);ctx.lineTo(q.x,q.y)}ctx.stroke();selected.forEach((p,i)=>drawPoint(p.x,p.y,['A','B','C'][i],'#ffd166'))}
  if(mode==='locate'){drawPoint(target.x,target.y,'?','#fb7185');}
  if(hasCursor){let p=toCanvas(cursor.x,cursor.y);ctx.beginPath();ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fillStyle='#5ee7f5';ctx.fill();ctx.strokeStyle='white';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#5ee7f5';ctx.font='bold 17px system-ui';ctx.fillText('('+cursor.x+', '+cursor.y+')',p.x+17,p.y-15)}
@@ -74,7 +75,7 @@ function drawPoint(x,y,label,color){let p=toCanvas(x,y);ctx.beginPath();ctx.arc(
 function setStatus(s){$('status').textContent=s}
 function setFeedback(s){$('feedback').textContent=s}
 function newChallenge(){
- selected=[];hasCursor=false;
+ selected=[];fixedPoints=[];hasCursor=false;
  if(mode==='locate'){target={x:rand(-7,7),y:rand(-4,4)}; $('mission').textContent='Localize o ponto ('+target.x+', '+target.y+').'; $('explain').textContent='Mova-se primeiro na horizontal até x = '+target.x+'; depois na vertical até y = '+target.y+'.';answers.innerHTML='';}
  else if(mode==='quadrant'){target={x:rand(1,7)*(Math.random()<.5?-1:1),y:rand(1,4)*(Math.random()<.5?-1:1)};$('mission').textContent='Em qual quadrante está o ponto ('+target.x+', '+target.y+')?';$('explain').textContent='I: (+,+) · II: (−,+) · III: (−,−) · IV: (+,−).';renderAnswers(['I','II','III','IV'],quadrant(target.x,target.y));}
  else {$('mission').textContent='Forme um triângulo marcando 3 pontos no plano.';$('explain').textContent='Marque três pontos diferentes. O jogo conectará os vértices e calculará a área em unidades quadradas.';answers.innerHTML='<div class="muted">Pontos marcados: <b id="pointCount">0/3</b></div>'}
@@ -84,6 +85,7 @@ function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function quadrant(x,y){return y>0?(x>0?'I':'II'):(x>0?'IV':'III')}
 function renderAnswers(opts,correct){$('answers').innerHTML='';opts.forEach(v=>{let b=document.createElement('button');b.className='answer';b.textContent=v;b.onclick=()=>{if(v===correct){score+=10;hits++;$('score').textContent=score;$('hits').textContent=hits;b.classList.add('correct');setFeedback('Correto! +10 pontos.');$('mission').textContent='Resposta correta!';}else{b.classList.add('wrong');setFeedback('Ainda não. Observe os sinais das coordenadas x e y e tente novamente.')}};$('answers').appendChild(b)})}
 function markPoint(){if(!hasCursor){setFeedback('Mova o cursor com o dedo ou toque no plano antes de marcar.');return}
+ fixedPoints.push({...cursor});
  if(mode==='locate'){if(cursor.x===target.x&&cursor.y===target.y){score+=10;hits++;$('score').textContent=score;$('hits').textContent=hits;setFeedback('Acertou ('+target.x+', '+target.y+')! +10 pontos.');$('mission').textContent='Muito bem! Ponto localizado.';setTimeout(newChallenge,1100)}else{setFeedback('Você marcou ('+cursor.x+', '+cursor.y+'). Continue tentando localizar ('+target.x+', '+target.y+').')}}
  else if(mode==='quadrant'){let q=quadrant(cursor.x,cursor.y);if(q===quadrant(target.x,target.y)){score+=10;hits++;$('score').textContent=score;$('hits').textContent=hits;setFeedback('Ponto no quadrante '+q+'. +10 pontos!');setTimeout(newChallenge,1100)}else setFeedback('Cursor no quadrante '+q+'. Leia o ponto solicitado e tente novamente.')}
  else{if(selected.some(p=>p.x===cursor.x&&p.y===cursor.y)){setFeedback('Esse ponto já foi marcado. Escolha outra coordenada.');return}selected.push({...cursor});$('pointCount').textContent=selected.length+'/3';draw();if(selected.length===3){let [a,b,c]=selected;let area=Math.abs(a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y))/2;score+=10;hits++;$('score').textContent=score;$('hits').textContent=hits;setFeedback('Triângulo formado! Área = '+area+' unidade(s)². Perímetro: '+perimeter(a,b,c).toFixed(2)+' unidades. +10 pontos.');$('mission').textContent='Figura concluída! Área: '+area+' u²';}}
@@ -100,16 +102,19 @@ async function startCamera(){
  model=new Hands({locateFile:file=>'https://cdn.jsdelivr.net/npm/@mediapipe/hands/'+file});
  model.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:.65,minTrackingConfidence:.6});
  model.onResults(results=>{
- if(!results.multiHandLandmarks||!results.multiHandLandmarks.length){pinchWas=false;setStatus('Câmera ligada. Mostre a mão inteira diante da webcam.');return}
- const lm=results.multiHandLandmarks[0],tip=lm[8],thumb=lm[4];
- // A câmera e o cursor são espelhados para funcionar como um espelho.
+ if(!results.multiHandLandmarks||!results.multiHandLandmarks.length){fistWas=false;fistFrames=0;setStatus('Câmera ligada. Mostre a mão inteira diante da webcam.');return}
+ const lm=results.multiHandLandmarks[0],tip=lm[8];
+ // O indicador controla o cursor; o punho fechado fixa o ponto.
  cursor=toCoord((1-tip.x)*W,tip.y*H);hasCursor=true;
- const pinch=landmarkDistance(tip,thumb)<.055;
- if(pinch&&!pinchWas)markPoint();pinchWas=pinch;
- setStatus(pinch?'Gesto detectado: ponto marcado.':'Mão detectada. Aponte com o indicador; junte polegar e indicador para marcar.');
+ const wrist=lm[0],fingerPairs=[[8,5],[12,9],[16,13],[20,17]];
+ const folded=fingerPairs.filter(([tipId,baseId])=>landmarkDistance(lm[tipId],wrist)<landmarkDistance(lm[baseId],wrist)*1.12).length;
+ const fist=folded>=4;fistFrames=fist?Math.min(fistFrames+1,10):0;
+ if(fistFrames>=5&&!fistWas){markPoint();fistWas=true;}
+ if(!fist)fistWas=false;
+ setStatus(fist?'Punho fechado: ponto fixado no plano.':'Mão detectada. Mova o ponto com o indicador; feche a mão em punho para fixá-lo.');
  draw();
  });
- cameraRunning=true;$('cameraToggle').textContent='Desativar webcam';setStatus('Webcam ativa. Aponte com o indicador e junte polegar e indicador para marcar.');
+ cameraRunning=true;$('cameraToggle').textContent='Desativar webcam';setStatus('Webcam ativa. Mova com o indicador e feche a mão em punho para fixar.');
  const loop=async()=>{if(!cameraRunning)return;if(video.readyState>=2)await model.send({image:video});requestAnimationFrame(loop)};loop();
  }catch(err){console.error(err);setStatus('Não foi possível abrir a câmera. Autorize o acesso ou use toque/clique. O site precisa de HTTPS.')}
 }
