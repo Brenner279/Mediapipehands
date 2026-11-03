@@ -1,39 +1,49 @@
-# Libras em Prática — Datilologia Interativa
+# Libras em Prática — Datilologia
 
-Aplicação web em React + TypeScript + Vite para praticar a soletração de nomes e palavras em Libras. O usuário digita um texto, visualiza a sequência letra por letra, consulta um guia visual e utiliza a webcam para rastrear a mão com MediaPipe.
+Aplicação web educativa para praticar a sequência de letras de um nome ou palavra em Libras. O sistema exibe instruções de estudo, abre a câmera e utiliza o **MediaPipe Hand Landmarker** para localizar os 21 pontos de referência da mão.
 
-## Recursos
-- Entrada de nomes e palavras (A–Z, Ç e espaços).
-- Cartões por letra, destaque da letra atual e barra de progresso.
-- MediaPipe Hand Landmarker no navegador, com até duas mãos e 21 landmarks por mão.
-- Esqueleto da mão desenhado sobre a imagem da câmera.
-- Indicadores dos cinco dedos.
-- Guia visual vetorial esquemático para A–Z e Ç.
-- Calibração pessoal de poses estáticas, salva no localStorage.
-- Confirmação manual para letras que exigem movimento nesta versão inicial.
+## Abrir a aplicação
 
-## Instalação
-Requer Node.js 20+, navegador atualizado e webcam.
+A página é estática: não exige Node.js, npm, instalação de dependências ou servidor de backend.
 
-```bash
-npm install
-npm run dev
-```
+- **GitHub Pages:** abra a pasta `libras-em-pratica` pelo endereço publicado do repositório.
+- **No computador:** entre nesta pasta pelo terminal e execute `python -m http.server 8000`. Depois, abra `http://localhost:8000`.
+- A câmera exige uma origem segura: HTTPS ou localhost. Não abra o arquivo HTML diretamente pelo gerenciador de arquivos.
 
-Abra http://localhost:5173 e permita o acesso à câmera. A webcam exige localhost ou HTTPS.
+É necessária conexão com a internet na primeira utilização para carregar o módulo, os arquivos WebAssembly e o modelo oficial do MediaPipe. Depois de carregados, o processamento dos quadros da câmera ocorre no próprio navegador.
 
-## Como praticar
-1. Digite um nome ou palavra e clique em **Montar sequência**.
-2. Ative a câmera.
-3. Para cada letra estática, grave exemplos com **Gravar exemplo desta letra**.
-4. Mantenha a mão na posição para a comparação com o modelo pessoal.
-5. Para letras dinâmicas, execute o movimento e use a confirmação manual.
+## Como utilizar
 
-## Publicação
-O workflow em `.github/workflows/deploy.yml` compila e publica esta aplicação no GitHub Pages quando houver push na branch main. Como o projeto está em uma subpasta de um repositório maior, o workflow deve ser executado a partir da raiz do repositório e o caminho de build deve ser ajustado para esta pasta antes de ativar o deploy.
+1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
+2. Selecione **Ativar câmera** e permita o acesso.
+3. Posicione uma mão no enquadramento, com iluminação adequada.
+4. Para uma letra de configuração estática, selecione **Gravar pose desta letra** e mantenha a mão estável durante a gravação.
+5. A aplicação compara os pontos detectados com a referência pessoal salva no navegador. Quando a semelhança se mantém por um intervalo, sugere a conclusão da letra.
+6. Para letras com movimento, execute o gesto e use **Concluir letra**. A comparação estática não avalia trajetórias.
+7. Use os cartões de letras para navegar pela sequência.
 
-## Limitações importantes
-O MediaPipe Hand Landmarker localiza a mão e produz 21 pontos; ele não classifica automaticamente letras de Libras. O protótipo compara poses com exemplos gravados pelo usuário. Letras com movimento não são reconhecidas automaticamente. As ilustrações e descrições são esquemáticas e precisam de validação com pessoas surdas e profissionais de Libras. Não é um tradutor automático nem uma avaliação de proficiência.
+As referências pessoais ficam no armazenamento local do navegador. O aplicativo não grava nem envia vídeos da câmera.
+
+## Limites importantes
+
+- **O MediaPipe Hand Landmarker detecta pontos da mão; não é, por si só, um tradutor ou classificador de Libras.**
+- A comparação é geométrica e usa uma pose de referência gravada pela própria pessoa. Ela é uma ajuda de prática, não uma avaliação linguística nem uma medida certificada de correção.
+- A comparação depende do enquadramento, da iluminação, da orientação da mão e da consistência da pose. Pessoas diferentes podem precisar gravar referências próprias.
+- Letras que envolvem movimento, como J e Z, exigem confirmação manual nesta versão.
+- As instruções textuais são lembretes introdutórios, não substituem imagens ou vídeos de referência. Configurações, orientação, movimento e variantes regionais devem ser conferidos com materiais didáticos confiáveis e pessoas surdas/profissionais fluentes em Libras.
+- Não utilize este protótipo para avaliar proficiência, certificar aprendizagem ou traduzir conversas.
 
 ## Tecnologias
-React 18, TypeScript, Vite, MediaPipe Tasks Vision e Lucide React.
+
+- HTML, CSS e JavaScript moderno (ES Modules)
+- MediaPipe Tasks Vision — Hand Landmarker
+- Câmera via `navigator.mediaDevices.getUserMedia`
+- Armazenamento local do navegador (`localStorage`)
+
+## Privacidade
+
+A aplicação usa a câmera somente após autorização explícita. O vídeo é processado no navegador pelo MediaPipe; os pontos da pose de referência são armazenados localmente no dispositivo. A biblioteca MediaPipe pode enviar métricas de utilização conforme a documentação e a política do fornecedor. Consulte a documentação do [Hand Landmarker para Web](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/web_js).
+
+## Créditos
+
+Projeto educacional independente para apoio à prática de datilologia em Libras. O alfabeto e suas descrições precisam de validação por pessoas surdas e profissionais de Libras antes de uso didático formal.
