@@ -48,7 +48,7 @@
             <span id="counter" class="counter">1 / 6</span>
           </div>
           <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
-          <div class="letter-stage">
+          <div id="letterStage" class="letter-stage">
             <div class="letter-tile"><span id="currentLetter">M</span><small>LETRA</small></div>
             <div class="letter-copy">
               <div id="letterKind" class="kind-tag">CONFIGURAÇÃO ESTÁTICA</div>
@@ -58,14 +58,24 @@
               <p id="templateState" class="template-state">Nenhuma referência pessoal gravada para esta letra.</p>
             </div>
           </div>
-          <div class="letter-actions">
+          <div id="letterActions" class="letter-actions">
             <button id="previousBtn" class="ghost-btn" type="button">← Anterior</button>
-            <button id="doneBtn" class="primary-btn" type="button">Concluir letra <span>✓</span></button>
+            <button id="doneBtn" class="primary-btn accept-btn" type="button">Aceitar letra e avançar <span>✓</span></button>
             <button id="nextBtn" class="ghost-btn" type="button">Próxima →</button>
           </div>
-          <div id="completion" class="completion" hidden>
-            <span class="completion-icon">✓</span>
-            <div><b>Sequência concluída!</b><p>Você percorreu todas as letras da palavra. Digite outra para continuar praticando.</p></div>
+          <div id="advanceFeedback" class="advance-feedback" role="status" aria-live="polite" hidden></div>
+          <div id="completion" class="completion-screen" aria-live="polite" hidden>
+            <div class="celebration-spark spark-one">✦</div>
+            <div class="celebration-spark spark-two">✧</div>
+            <div class="celebration-icon" aria-hidden="true">🏆</div>
+            <span class="celebration-kicker">MISSÃO CONCLUÍDA</span>
+            <h3>Parabéns! Você conseguiu!</h3>
+            <p>Você concluiu todas as letras de <strong id="completedWord">MICHEL</strong>.</p>
+            <p class="celebration-subtitle">Cada letra foi um passo. Continue praticando e aprendendo Libras!</p>
+            <div class="completion-actions">
+              <button id="repeatBtn" class="ghost-btn" type="button">↻ Praticar novamente</button>
+              <button id="newWordBtn" class="primary-btn" type="button">Nova palavra <span>→</span></button>
+            </div>
           </div>
         </section>
 
