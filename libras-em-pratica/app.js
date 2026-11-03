@@ -104,7 +104,7 @@ function render() {
   ui.advanceFeedback.hidden = true;
   ui.advanceFeedback.textContent = "";
   ui.done.disabled = done;
-  ui.next.disabled = done;
+  ui.next.disabled = done || step >= sequence.length - 1;
   ui.previous.disabled = step === 0;
   if (done) {
     ui.letter.textContent = "✓";
