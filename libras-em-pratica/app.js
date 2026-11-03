@@ -169,6 +169,7 @@ function render() {
   ui.letter.textContent = letter;
   const referenceImages = {
     A: "../referencias-libras/A.jpg",
+    B: "../referencias-libras/B.jpg",
     C: "../referencias-libras/C.jpg", D: "../referencias-libras/D.jpg", E: "../referencias-libras/E.jpg", F: "../referencias-libras/F.jpg",
     G: "../referencias-libras/G.jpg", H: "../referencias-libras/H.jpg", I: "../referencias-libras/I.jpg", J: "../referencias-libras/J.jpg",
     K: "../referencias-libras/K.jpg", L: "../referencias-libras/L.jpg", M: "../referencias-libras/M.jpg", N: "../referencias-libras/N.jpg",
