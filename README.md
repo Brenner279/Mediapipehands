@@ -6,8 +6,8 @@ Aplicação web educativa para praticar a sequência de letras de um nome ou pal
 
 A página é estática: não exige Node.js, npm, instalação de dependências ou servidor de backend.
 
-- **GitHub Pages:** abra a pasta `libras-em-pratica` pelo endereço publicado do repositório.
-- **No computador:** entre nesta pasta pelo terminal e execute `python -m http.server 8000`. Depois, abra `http://localhost:8000`.
+- **GitHub Pages:** abra o endereço principal do repositório; o aplicativo é servido diretamente pela página inicial.
+- **No computador:** na raiz do repositório, execute `python -m http.server 8000`. Depois, abra `http://localhost:8000`.
 - A câmera exige uma origem segura: HTTPS ou localhost. Não abra o arquivo HTML diretamente pelo gerenciador de arquivos.
 
 É necessária conexão com a internet na primeira utilização para carregar o módulo, os arquivos WebAssembly e o modelo oficial do MediaPipe. Depois de carregados, o processamento dos quadros da câmera ocorre no próprio navegador.
@@ -17,7 +17,7 @@ A página é estática: não exige Node.js, npm, instalação de dependências o
 1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
 2. Selecione **Ativar câmera** e permita o acesso.
 3. Posicione uma mão no enquadramento, com iluminação adequada.
-4. A aplicação exibe automaticamente a imagem de referência visual correspondente à letra atual, usando os arquivos de imagem da pasta `referencias-libras/`. A pasta contém as imagens de referência `A.jpg` até `Z.jpg`. As imagens são referências de estudo; somente A, C e S são atualmente utilizadas na tentativa de extração automática dos 21 pontos da mão pelo MediaPipe. Não é necessário gravar essas três letras manualmente quando a detecção na imagem for bem-sucedida.
+4. A aplicação exibe automaticamente a imagem de referência visual correspondente à letra atual, usando os arquivos de imagem da pasta `referencias-libras/`, localizada na raiz do repositório. A pasta contém as imagens de referência `A.jpg` até `Z.jpg`. As imagens são referências de estudo; somente A, C e S são atualmente utilizadas na tentativa de extração automática dos 21 pontos da mão pelo MediaPipe. Não é necessário gravar essas três letras manualmente quando a detecção na imagem for bem-sucedida.
 5. Depois de obter uma referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra. A aplicação também testa a comparação com orientação horizontal espelhada.
 6. As referências ficam salvas no navegador. Ao digitar novamente uma palavra com letras já calibradas, a prática acontece sem nova gravação.
 7. Para letras com movimento, execute o gesto e use a confirmação manual. A comparação estática não avalia trajetórias.
