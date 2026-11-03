@@ -43,7 +43,10 @@ const ui = {
   progress:$("progressFill"), letter:$("currentLetter"), title:$("letterTitle"),
   instruction:$("instruction"), kind:$("letterKind"), movement:$("movement"),
   templateState:$("templateState"), previous:$("previousBtn"), next:$("nextBtn"),
-  done:$("doneBtn"), completion:$("completion"), cameraBtn:$("cameraBtn"),
+  done:$("doneBtn"), completion:$("completion"), letterStage:$("letterStage"),
+  letterActions:$("letterActions"), advanceFeedback:$("advanceFeedback"),
+  completedWord:$("completedWord"), repeatBtn:$("repeatBtn"), newWordBtn:$("newWordBtn"),
+  cameraBtn:$("cameraBtn"),
   stopBtn:$("stopBtn"), status:$("cameraStatus"), message:$("cameraMessage"),
   video:$("video"), canvas:$("overlay"), placeholder:$("cameraPlaceholder"),
   handBadge:$("handBadge"), fingers:$("fingerStates"), capture:$("captureBtn"),
@@ -96,6 +99,10 @@ function render() {
   ui.counter.textContent = sequence.length ? Math.min(step + 1,sequence.length) + " / " + sequence.length : "0 / 0";
   ui.progress.style.width = (sequence.length ? (step / sequence.length) * 100 : 0) + "%";
   ui.completion.hidden = !done;
+  ui.letterStage.hidden = done;
+  ui.letterActions.hidden = done;
+  ui.advanceFeedback.hidden = true;
+  ui.advanceFeedback.textContent = "";
   ui.done.disabled = done;
   ui.next.disabled = done;
   ui.previous.disabled = step === 0;
@@ -107,6 +114,7 @@ function render() {
     ui.kind.classList.remove("dynamic");
     ui.movement.hidden = true;
     ui.templateState.textContent = "";
+    ui.completedWord.textContent = sequence.join("");
     ui.capture.disabled = true;
     ui.matchLabel.textContent = "Prática finalizada";
     ui.matchHelp.textContent = "Digite outra palavra para iniciar uma nova sequência.";
@@ -145,8 +153,21 @@ function move(delta) {
   holdStarted = 0;
   render();
 }
-function completeLetter() {
-  if (step < sequence.length) move(1);
+function completeLetter(source = "manual") {
+  if (step >= sequence.length) return;
+  const acceptedLetter = current();
+  move(1);
+  if (step >= sequence.length) {
+    ui.message.textContent = "Parabéns! Você concluiu todas as letras de " + sequence.join("") + "!";
+    return;
+  }
+  const nextLetter = current();
+  const feedback = source === "automatic"
+    ? "A pose da letra " + acceptedLetter + " atingiu a semelhança definida com sua referência. Próxima letra: " + nextLetter + "."
+    : "Letra " + acceptedLetter + " aceita! Vamos para a próxima: " + nextLetter + ".";
+  ui.advanceFeedback.textContent = "✓ " + feedback;
+  ui.advanceFeedback.hidden = false;
+  ui.message.textContent = feedback;
 }
 ui.form.addEventListener("submit",event => {
   event.preventDefault();
@@ -160,7 +181,20 @@ ui.form.addEventListener("submit",event => {
 });
 ui.previous.addEventListener("click",() => move(-1));
 ui.next.addEventListener("click",() => move(1));
-ui.done.addEventListener("click",completeLetter);
+ui.done.addEventListener("click",() => completeLetter("manual"));
+ui.repeatBtn.addEventListener("click",() => {
+  step = 0;
+  holdStarted = 0;
+  lastAutoAdvance = 0;
+  render();
+  ui.message.textContent = "Vamos novamente! Comece pela letra " + current() + ".";
+});
+ui.newWordBtn.addEventListener("click",() => {
+  ui.input.value = "";
+  ui.message.textContent = "Digite outra palavra no campo acima e selecione Montar sequência.";
+  window.scrollTo({top:0,behavior:"smooth"});
+  ui.input.focus({preventScroll:true});
+});
 ui.clear.addEventListener("click",() => {
   const letter = current();
   if (!letter || !templates[letter]) return;
@@ -318,7 +352,7 @@ function processMatch(now) {
     if (progress >= 100 && now-lastAutoAdvance > 1700) {
       lastAutoAdvance = now;
       holdStarted = 0;
-      completeLetter();
+      completeLetter("automatic");
     }
   } else {
     holdStarted = 0;
