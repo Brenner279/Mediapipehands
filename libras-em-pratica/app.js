@@ -1,7 +1,9 @@
-import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs";
+const VISION_PACKAGE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0";
+let FilesetResolver = null;
+let HandLandmarker = null;
 
 const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task";
-const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm";
+const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm";
 const STORAGE_KEY = "libras-em-pratica-pose-templates-v1";
 const HOLD_MS = 1400;
 const MATCH_LIMIT = 0.17;
@@ -186,6 +188,12 @@ async function startCamera() {
     stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:1280},height:{ideal:720}},audio:false});
     ui.video.srcObject = stream;
     await ui.video.play();
+    if (!FilesetResolver || !HandLandmarker) {
+      const visionModule = await import(VISION_PACKAGE);
+      FilesetResolver = visionModule.FilesetResolver;
+      HandLandmarker = visionModule.HandLandmarker;
+    }
+    if (!FilesetResolver || !HandLandmarker) throw new Error("Não foi possível carregar as classes do MediaPipe Tasks Vision.");
     const vision = await FilesetResolver.forVisionTasks(WASM_URL);
     try {
       landmarker = await HandLandmarker.createFromOptions(vision,{
@@ -202,7 +210,6 @@ async function startCamera() {
     }
     ui.canvas.width = ui.video.videoWidth;
     ui.canvas.height = ui.video.videoHeight;
-    $("cameraFrame");
     ui.video.parentElement.classList.add("active");
     ui.status.classList.add("live");
     ui.status.innerHTML = "<i></i> Câmera ativa";
