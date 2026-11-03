@@ -348,3 +348,92 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid rgba(
   html{scroll-behavior:auto}
   .card,.primary-btn{transition:none}
 }
+
+
+/* DIREÇÃO VISUAL CRIATIVA — Libras em Prática */
+:root{
+  --navy:#14213d;--blue:#3157d5;--mint:#54d6b2;--coral:#ff806b;
+  --paper:#f5f3ed;--line:#e5e3dc;
+}
+body{
+  color:var(--navy);background-color:var(--paper);
+  background-image:radial-gradient(#d9d7ce 0.7px,transparent .7px);
+  background-size:18px 18px;
+}
+.topbar{
+  background:rgba(250,249,245,.94);border-bottom:1px solid #e5e2d9;
+  backdrop-filter:blur(16px);
+}
+.brand-mark{
+  border-radius:13px 13px 13px 4px;background:var(--coral);
+  color:#14213d;box-shadow:4px 4px 0 #14213d;font-weight:950;
+}
+.top-tag{background:#e8eee8;color:#315747;border:1px solid #d7e2d8}
+.shell{max-width:1360px}
+.intro{
+  min-height:330px;padding:52px 54px;border-radius:10px 34px 10px 34px;
+  background:#18294b;
+  box-shadow:9px 9px 0 #d7d4c9;
+}
+.intro:before{
+  opacity:.24;background-size:84px 84px;
+  background-image:url("data:image/svg+xml,%3Csvg width='84' height='84' viewBox='0 0 84 84' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M42 0V84M0 42H84' stroke='%23dce8ff' stroke-opacity='.35'/%3E%3Ccircle cx='42' cy='42' r='25' fill='none' stroke='%23dce8ff' stroke-opacity='.35'/%3E%3C/svg%3E");
+}
+.eyebrow{color:#9ce8d2}
+.intro h1{font-size:clamp(42px,5.4vw,68px);max-width:700px;letter-spacing:-3.2px}
+.intro-copy{font-size:15px;color:#d0d9e8;max-width:540px}
+.intro-art{right:4%;width:330px;height:270px}
+.art-orbit{border:1px dashed rgba(220,235,255,.42)}
+.orbit-one{width:250px;height:175px;border-radius:44% 56% 62% 38%}
+.orbit-two{width:190px;height:230px;border-radius:50%}
+.letter-a{font-size:140px;color:#f7c96b;right:112px;top:18px;text-shadow:7px 7px 0 #e46e60}
+.letter-l{font-size:94px;color:#70e0c2;right:28px;top:100px;text-shadow:4px 4px 0 #314b81}
+.letter-m{font-size:66px;color:#f4f0e8;right:215px;top:143px}
+.art-caption{color:#c0cce0}
+.workspace{gap:25px}
+.card{
+  border:1px solid #e3e0d6;border-radius:12px 24px 12px 24px;
+  box-shadow:5px 5px 0 #e2dfd5;background:#fffefa;
+}
+.card:hover{transform:translateY(-2px);box-shadow:7px 8px 0 #dedbd0;border-color:#d5d0c2}
+.step-label{color:#71809c}
+.section-heading h2{font-size:19px;letter-spacing:-.6px}
+.mini-pill,.counter{background:#f8e9c9;border:1px solid #f1dfb7;color:#78551a}
+.word-form input{background:#f8f7f2;border:1px solid #e5e1d6;border-radius:8px}
+.primary-btn{
+  background:var(--coral);color:#172441;border-radius:8px;
+  box-shadow:3px 3px 0 #172441;font-weight:850;
+}
+.primary-btn:hover{background:#ff9a83;box-shadow:1px 1px 0 #172441;transform:translate(2px,2px)}
+.ghost-btn{border-radius:8px;background:#edf0f5;color:#344766}
+.letter-chip{border-radius:7px;background:#f5f3ec;border-color:#e5e0d4;color:#53627b}
+.letter-chip.active{background:#f7d58b;border-color:#e9bd5b;color:#493719;box-shadow:2px 2px 0 #dba94b}
+.letter-chip.done{background:#dff4e9;border-color:#b8e2ca;color:#216a4d}
+.letter-tile{
+  border-radius:12px 24px 12px 24px;background:#f8d98e;border:1px solid #eac66f;
+  box-shadow:5px 5px 0 #e8c36e;
+}
+.letter-tile span{color:#1b2c4b}
+.kind-tag{background:#dff4e9;color:#216a4d}
+.kind-tag.dynamic{background:#ffe4d8;color:#a84e37}
+.progress-fill{background:linear-gradient(90deg,#f4bd56,#ff806b)}
+.camera-frame{
+  border-radius:12px 24px 12px 24px;border:3px solid #1a2b4c;
+  background:radial-gradient(ellipse at 50% 40%,#3b5a82,#172747 68%);
+  box-shadow:5px 5px 0 #c9c7bd;
+}
+.camera-placeholder-icon{color:#f6ca6e}
+.status.live i{background:#54d6b2;box-shadow:0 0 0 3px rgba(84,214,178,.16)}
+.match-panel{background:#f5f6ef;border-color:#e4e5d9}
+.match-fill{background:#54b994}
+.outline-btn{border-radius:8px;border-color:#d7dfc9;background:#f5f8ef;color:#315747}
+.tips-card{background:#eff4e9;border-color:#dce7d8}
+.tips-icon{background:#d7eddf;color:#28634d;border-radius:8px}
+.footer{color:#777e88;border-color:#dedbd1}
+.completion-screen{border-radius:12px 24px 12px 24px;background:#eff8ef;border-color:#d6e8d5}
+@media(max-width:620px){
+  .intro{min-height:300px;padding:30px 23px;border-radius:10px 24px 10px 24px}
+  .intro h1{font-size:39px;letter-spacing:-1.9px}
+  .intro-art{opacity:.25}
+  .card{border-radius:10px 18px 10px 18px}
+}
