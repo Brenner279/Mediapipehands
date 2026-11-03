@@ -43,6 +43,7 @@ const ui = {
   form:$("wordForm"), input:$("wordInput"), sequence:$("sequence"), counter:$("counter"),
   progress:$("progressFill"), letter:$("currentLetter"), title:$("letterTitle"),
   instruction:$("instruction"), kind:$("letterKind"), movement:$("movement"),
+  referenceVisual:$("referenceVisual"), referenceImage:$("referenceImage"),
   templateState:$("templateState"), previous:$("previousBtn"), next:$("nextBtn"),
   done:$("doneBtn"), completion:$("completion"), letterStage:$("letterStage"),
   letterActions:$("letterActions"), advanceFeedback:$("advanceFeedback"),
@@ -136,6 +137,16 @@ function render() {
     return;
   }
   ui.letter.textContent = letter;
+  const referenceImages = { A: "../A.jpg", C: "../C.jpg", S: "../S.jpg" };
+  const referencePath = referenceImages[letter];
+  ui.referenceVisual.hidden = !referencePath || dynamic;
+  if (referencePath && !dynamic) {
+    ui.referenceImage.src = referencePath;
+    ui.referenceImage.alt = "Referência visual da configuração manual da letra " + letter + " em Libras";
+    ui.referenceImage.onerror = () => { ui.referenceVisual.hidden = true; };
+  } else {
+    ui.referenceImage.removeAttribute("src");
+  }
   ui.title.textContent = data[0];
   ui.instruction.textContent = data[1];
   ui.kind.textContent = dynamic ? "SINAL COM MOVIMENTO / VARIAÇÃO" : "CONFIGURAÇÃO PARA PRÁTICA";
