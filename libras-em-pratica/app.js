@@ -87,21 +87,26 @@ function getTemplate(letter) {
 }
 async function loadImageTemplates() {
   const results = [];
-  for (const [letter, path] of Object.entries(IMAGE_REFERENCE_LETTERS)) {
-    try {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = path;
-      await img.decode();
-      const detected = landmarker.detect(img);
-      const hand = detected.landmarks && detected.landmarks[0];
-      if (!hand) { results.push(letter + ": nenhuma mão detectada"); continue; }
-      imageTemplates[letter] = descriptor(hand);
-      results.push(letter + ": referência extraída");
-    } catch (error) {
-      results.push(letter + ": falha ao processar imagem");
-      console.warn("Não foi possível extrair a referência da letra " + letter, error);
+  await landmarker.setOptions({runningMode:"IMAGE"});
+  try {
+    for (const [letter, path] of Object.entries(IMAGE_REFERENCE_LETTERS)) {
+      try {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = path;
+        await img.decode();
+        const detected = landmarker.detect(img);
+        const hand = detected.landmarks && detected.landmarks[0];
+        if (!hand) { results.push(letter + ": nenhuma mão detectada"); continue; }
+        imageTemplates[letter] = descriptor(hand);
+        results.push(letter + ": referência extraída");
+      } catch (error) {
+        results.push(letter + ": falha ao processar imagem");
+        console.warn("Não foi possível extrair a referência da letra " + letter, error);
+      }
     }
+  } finally {
+    await landmarker.setOptions({runningMode:"VIDEO"});
   }
   return results;
 }
