@@ -17,8 +17,8 @@ A página é estática: não exige Node.js, npm, instalação de dependências o
 1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
 2. Selecione **Ativar câmera** e permita o acesso.
 3. Posicione uma mão no enquadramento, com iluminação adequada.
-4. Para as letras **A, C e S**, a aplicação também exibe as imagens `A.jpg`, `C.jpg` e `S.jpg` do diretório principal do repositório como referências visuais. Na primeira utilização de cada letra estática, use **Gravar referência da letra** e mantenha a pose correta estável durante a gravação. Use uma imagem/vídeo confiável de Libras ou orientação de pessoa fluente para garantir que a referência seja adequada.
-5. Depois de gravada a referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra.
+4. Para as letras **A, C e S**, a aplicação carrega `A.jpg`, `C.jpg` e `S.jpg` do diretório principal e tenta extrair automaticamente os 21 pontos da mão usando o MediaPipe. Não é necessário gravar essas três letras manualmente quando a detecção na imagem for bem-sucedida.
+5. Depois de obter uma referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra. A aplicação também testa a comparação com orientação horizontal espelhada.
 6. As referências ficam salvas no navegador. Ao digitar novamente uma palavra com letras já calibradas, a prática acontece sem nova gravação.
 7. Para letras com movimento, execute o gesto e use a confirmação manual. A comparação estática não avalia trajetórias.
 8. O botão de avançar foi removido do fluxo normal para evitar pular letras sem que a pose seja reconhecida.
@@ -28,7 +28,7 @@ As referências pessoais ficam no armazenamento local do navegador. O aplicativo
 ## Limites importantes
 
 - **O MediaPipe Hand Landmarker detecta pontos da mão; não é, por si só, um tradutor ou classificador de Libras.**
-- O reconhecimento automático das letras estáticas é uma comparação geométrica com uma pose de referência gravada pela própria pessoa. A aplicação não reconhece semanticamente a letra sem essa calibração. Se a referência for gravada com uma configuração incorreta, o sistema pode aceitar a pose incorreta. Por isso, calibre usando material confiável de Libras ou orientação especializada. A comparação não é uma avaliação linguística nem uma medida certificada de correção.
+- Para **A, C e S**, o aplicativo tenta extrair landmarks diretamente das imagens do repositório. Isso depende de o MediaPipe detectar uma mão real e suficientemente nítida na imagem. Uma ilustração, desenho, mão parcialmente cortada ou imagem de baixa qualidade pode não gerar landmarks; nesse caso, o app informa que a referência está indisponível. Para outras letras estáticas, ainda há suporte a referência pessoal capturada pela câmera. A comparação geométrica não reconhece semanticamente a letra e não é uma avaliação linguística nem uma medida certificada de correção.
 - A comparação depende do enquadramento, da iluminação, da orientação da mão e da consistência da pose. Pessoas diferentes podem precisar gravar referências próprias.
 - Letras que envolvem movimento, como J e Z, exigem confirmação manual nesta versão. O reconhecimento temporal desses gestos ainda não está implementado.
 - As instruções textuais são lembretes introdutórios, não substituem imagens ou vídeos de referência. Configurações, orientação, movimento e variantes regionais devem ser conferidos com materiais didáticos confiáveis e pessoas surdas/profissionais fluentes em Libras.
