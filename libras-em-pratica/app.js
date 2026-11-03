@@ -64,6 +64,8 @@ let lastVideoTime = -1;
 let currentDescriptor = null;
 let currentLandmarks = null;
 let templates = loadTemplates();
+const imageTemplates = Object.create(null);
+const IMAGE_REFERENCE_LETTERS = { A: "../A.jpg", C: "../C.jpg", S: "../S.jpg" };
 let recording = false;
 let recordingStarted = 0;
 let recordingSamples = [];
@@ -79,6 +81,29 @@ function loadTemplates() {
 function saveTemplates() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(templates)); }
   catch { ui.message.textContent = "Não foi possível salvar a referência neste navegador."; }
+}
+function getTemplate(letter) {
+  return imageTemplates[letter] || templates[letter] || null;
+}
+async function loadImageTemplates() {
+  const results = [];
+  for (const [letter, path] of Object.entries(IMAGE_REFERENCE_LETTERS)) {
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = path;
+      await img.decode();
+      const detected = landmarker.detect(img);
+      const hand = detected.landmarks && detected.landmarks[0];
+      if (!hand) { results.push(letter + ": nenhuma mão detectada"); continue; }
+      imageTemplates[letter] = descriptor(hand);
+      results.push(letter + ": referência extraída");
+    } catch (error) {
+      results.push(letter + ": falha ao processar imagem");
+      console.warn("Não foi possível extrair a referência da letra " + letter, error);
+    }
+  }
+  return results;
 }
 function normalize(value) {
   return value.replace(/[çÇ]/g,"§").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/§/g,"Ç").toUpperCase().replace(/[^A-ZÇ\s]/g,"").replace(/\s+/g," ").trim();
@@ -153,11 +178,14 @@ function render() {
   ui.kind.classList.toggle("dynamic",dynamic);
   ui.movement.hidden = !dynamic;
   ui.movement.textContent = dynamic ? "Esta letra pode envolver movimento. A comparação estática não confirma sua execução; use a confirmação manual." : "";
-  ui.templateState.textContent = templates[letter]
-    ? "✓ Referência gravada. Faça a pose correta; ao reconhecê-la, o sistema avançará sozinho."
-    : "Calibração necessária: grave uma vez a pose correta desta letra para ativar o reconhecimento automático.";
-  ui.capture.disabled = !stream || dynamic;
-  ui.capture.textContent = templates[letter]
+  ui.templateState.textContent = imageTemplates[letter]
+    ? "✓ Referência extraída automaticamente da imagem do repositório. Não é necessário gravar esta letra."
+    : templates[letter]
+      ? "✓ Referência pessoal gravada. Faça a pose correta; ao reconhecê-la, o sistema avançará sozinho."
+      : "Aguardando referência automática da imagem ou uma referência pessoal.";
+  ui.capture.disabled = !stream || dynamic || Boolean(imageTemplates[letter]);
+  ui.capture.hidden = Boolean(imageTemplates[letter]);
+  ui.capture.textContent = getTemplate(letter)
     ? "↻ Regravar referência da letra " + letter
     : "＋ Gravar referência da letra " + letter;
   ui.clear.disabled = !templates[letter];
@@ -167,12 +195,14 @@ function render() {
     ui.matchPercent.textContent = "MOV.";
     ui.matchFill.style.width = "0%";
     ui.matchHelp.textContent = "Esta letra envolve movimento. O reconhecimento temporal ainda não está implementado; execute o gesto e confirme manualmente.";
-  } else if (templates[letter]) {
+  } else if (getTemplate(letter)) {
     ui.done.hidden = true;
     ui.matchLabel.textContent = "Aguardando a letra " + letter;
     ui.matchPercent.textContent = "0%";
     ui.matchFill.style.width = "0%";
-    ui.matchHelp.textContent = "Quando sua mão corresponder à referência por cerca de 1 segundo, a próxima letra aparecerá automaticamente. Não precisa clicar para aceitar.";
+    ui.matchHelp.textContent = imageTemplates[letter]
+      ? "Referência obtida automaticamente da imagem do repositório. Mantenha a configuração da mão por cerca de 1 segundo para avançar."
+      : "Quando sua mão corresponder à referência por cerca de 1 segundo, a próxima letra aparecerá automaticamente. Não precisa clicar para aceitar.";
   } else {
     ui.done.hidden = true;
     ui.matchLabel.textContent = "Calibração necessária";
@@ -275,6 +305,7 @@ async function startCamera() {
         minHandPresenceConfidence:0.55,minTrackingConfidence:0.5
       });
     }
+    const imageResults = await loadImageTemplates();
     ui.canvas.width = ui.video.videoWidth;
     ui.canvas.height = ui.video.videoHeight;
     ui.video.parentElement.classList.add("active");
@@ -285,10 +316,13 @@ async function startCamera() {
     render();
     if (DYNAMIC.has(current())) {
       ui.message.textContent = "Esta letra envolve movimento e precisa de confirmação manual nesta versão.";
-    } else if (templates[current()]) {
+    } else if (getTemplate(current())) {
       ui.message.textContent = "Câmera ativa. Faça o gesto da letra " + current() + "; o avanço será automático quando a pose for reconhecida.";
     } else {
-      ui.message.textContent = "Câmera ativa. Grave uma referência correta da letra " + current() + " uma única vez para habilitar o reconhecimento automático.";
+      const failures = imageResults.filter(item => item.startsWith(current() + ":"));
+      ui.message.textContent = failures.length
+        ? "A imagem de referência da letra " + current() + " não forneceu pontos de mão ao MediaPipe (" + failures[0].split(": ")[1] + ")."
+        : "Não há imagem de referência automática para esta letra. É necessária uma imagem adequada ou uma referência pessoal.";
     }
     raf = requestAnimationFrame(loop);
   } catch (error) {
@@ -387,15 +421,19 @@ function processMatch(now) {
     ui.matchHelp.textContent = "Mostre a mão à câmera, centralizada e bem iluminada.";
     return;
   }
-  if (!templates[letter]) {
+  const targetTemplate = getTemplate(letter);
+  if (!targetTemplate) {
     holdStarted = 0;
-    ui.matchLabel.textContent = "Calibração necessária";
+    ui.matchLabel.textContent = "Referência indisponível";
     ui.matchPercent.textContent = "—";
     ui.matchFill.style.width = "0%";
-    ui.matchHelp.textContent = "Grave uma referência correta para a letra " + letter + ". Depois o sistema poderá reconhecê-la automaticamente.";
+    ui.matchHelp.textContent = "Não foi possível extrair uma mão da imagem desta letra. É necessário fornecer uma imagem adequada ou uma referência gravada.";
     return;
   }
-  const score = distance(currentDescriptor,templates[letter]);
+  const normalScore = distance(currentDescriptor,targetTemplate);
+  const mirrored = currentDescriptor.slice();
+  for (let i=0;i<mirrored.length;i+=3) mirrored[i] *= -1;
+  const score = Math.min(normalScore,distance(mirrored,targetTemplate));
   const percent = Math.max(0,Math.min(100,Math.round((1-score/0.42)*100)));
   ui.matchPercent.textContent = percent + "%";
   ui.matchFill.style.width = percent + "%";
