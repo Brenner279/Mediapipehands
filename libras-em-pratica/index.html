@@ -60,8 +60,8 @@
           </div>
           <div id="letterActions" class="letter-actions">
             <button id="previousBtn" class="ghost-btn" type="button">← Anterior</button>
-            <button id="doneBtn" class="primary-btn accept-btn" type="button">Aceitar letra e avançar <span>✓</span></button>
-            <button id="nextBtn" class="ghost-btn" type="button">Próxima →</button>
+            <button id="doneBtn" class="primary-btn accept-btn" type="button" hidden>Confirmar movimento <span>✓</span></button>
+            <button id="nextBtn" class="ghost-btn" type="button" hidden>Próxima →</button>
           </div>
           <div id="advanceFeedback" class="advance-feedback" role="status" aria-live="polite" hidden></div>
           <div id="completion" class="completion-screen" aria-live="polite" hidden>
@@ -122,10 +122,10 @@
             <p id="matchHelp">Grave uma referência pessoal para esta letra e compare a pose ao vivo.</p>
           </div>
           <div class="camera-actions">
-            <button id="captureBtn" class="outline-btn" type="button" disabled>＋ Gravar pose desta letra</button>
+            <button id="captureBtn" class="outline-btn" type="button" disabled>＋ Gravar referência da letra atual</button>
             <button id="clearBtn" class="text-btn" type="button">Apagar referência</button>
           </div>
-          <p class="hint">A gravação salva somente os pontos da mão no armazenamento local deste navegador. Nenhum vídeo é armazenado.</p>
+          <p class="hint">Na primeira vez, grave uma referência correta de cada letra estática com apoio de um material confiável de Libras. Depois, a câmera compara a pose e avança sozinha; não é preciso clicar para aceitar. A referência fica neste navegador, e nenhum vídeo é armazenado.</p>
         </section>
 
         <section class="card tips-card">

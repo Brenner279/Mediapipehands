@@ -17,19 +17,20 @@ A página é estática: não exige Node.js, npm, instalação de dependências o
 1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
 2. Selecione **Ativar câmera** e permita o acesso.
 3. Posicione uma mão no enquadramento, com iluminação adequada.
-4. Para uma letra de configuração estática, selecione **Gravar pose desta letra** e mantenha a mão estável durante a gravação.
-5. A aplicação compara os pontos detectados com a referência pessoal salva no navegador. Quando a semelhança se mantém por um intervalo, sugere a conclusão da letra.
-6. Para letras com movimento, execute o gesto e use **Concluir letra**. A comparação estática não avalia trajetórias.
-7. Use os cartões de letras para navegar pela sequência.
+4. Na primeira utilização de cada letra estática, use **Gravar referência da letra** e mantenha a pose correta estável durante a gravação. Use uma imagem/vídeo confiável de Libras ou orientação de pessoa fluente para garantir que a referência seja adequada.
+5. Depois de gravada a referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra.
+6. As referências ficam salvas no navegador. Ao digitar novamente uma palavra com letras já calibradas, a prática acontece sem nova gravação.
+7. Para letras com movimento, execute o gesto e use a confirmação manual. A comparação estática não avalia trajetórias.
+8. O botão de avançar foi removido do fluxo normal para evitar pular letras sem que a pose seja reconhecida.
 
 As referências pessoais ficam no armazenamento local do navegador. O aplicativo não grava nem envia vídeos da câmera.
 
 ## Limites importantes
 
 - **O MediaPipe Hand Landmarker detecta pontos da mão; não é, por si só, um tradutor ou classificador de Libras.**
-- A comparação é geométrica e usa uma pose de referência gravada pela própria pessoa. Ela é uma ajuda de prática, não uma avaliação linguística nem uma medida certificada de correção.
+- O reconhecimento automático das letras estáticas é uma comparação geométrica com uma pose de referência gravada pela própria pessoa. A aplicação não reconhece semanticamente a letra sem essa calibração. Se a referência for gravada com uma configuração incorreta, o sistema pode aceitar a pose incorreta. Por isso, calibre usando material confiável de Libras ou orientação especializada. A comparação não é uma avaliação linguística nem uma medida certificada de correção.
 - A comparação depende do enquadramento, da iluminação, da orientação da mão e da consistência da pose. Pessoas diferentes podem precisar gravar referências próprias.
-- Letras que envolvem movimento, como J e Z, exigem confirmação manual nesta versão.
+- Letras que envolvem movimento, como J e Z, exigem confirmação manual nesta versão. O reconhecimento temporal desses gestos ainda não está implementado.
 - As instruções textuais são lembretes introdutórios, não substituem imagens ou vídeos de referência. Configurações, orientação, movimento e variantes regionais devem ser conferidos com materiais didáticos confiáveis e pessoas surdas/profissionais fluentes em Libras.
 - Não utilize este protótipo para avaliar proficiência, certificar aprendizagem ou traduzir conversas.
 
