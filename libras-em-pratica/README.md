@@ -17,7 +17,7 @@ A página é estática: não exige Node.js, npm, instalação de dependências o
 1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
 2. Selecione **Ativar câmera** e permita o acesso.
 3. Posicione uma mão no enquadramento, com iluminação adequada.
-4. Na primeira utilização de cada letra estática, use **Gravar referência da letra** e mantenha a pose correta estável durante a gravação. Use uma imagem/vídeo confiável de Libras ou orientação de pessoa fluente para garantir que a referência seja adequada.
+4. Para as letras **A, C e S**, a aplicação também exibe as imagens `A.jpg`, `C.jpg` e `S.jpg` do diretório principal do repositório como referências visuais. Na primeira utilização de cada letra estática, use **Gravar referência da letra** e mantenha a pose correta estável durante a gravação. Use uma imagem/vídeo confiável de Libras ou orientação de pessoa fluente para garantir que a referência seja adequada.
 5. Depois de gravada a referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra.
 6. As referências ficam salvas no navegador. Ao digitar novamente uma palavra com letras já calibradas, a prática acontece sem nova gravação.
 7. Para letras com movimento, execute o gesto e use a confirmação manual. A comparação estática não avalia trajetórias.
