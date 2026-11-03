@@ -27,6 +27,9 @@ jobs:
       - name: Baixar repositório
         uses: actions/checkout@v4
 
+      - name: Validar sintaxe JavaScript
+        run: node --check libras-em-pratica/app.js
+
       - name: Preparar arquivos do site
         run: |
           mkdir -p _site
