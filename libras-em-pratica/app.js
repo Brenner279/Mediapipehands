@@ -167,10 +167,18 @@ function render() {
     return;
   }
   ui.letter.textContent = letter;
-  const referenceImages = { A: "../A.jpg", C: "../C.jpg", S: "../S.jpg" };
+  const referenceImages = {
+    A: "../A.jpg",
+    C: "../C.jpg", D: "../D.jpg", E: "../E.jpg", F: "../F.jpg",
+    G: "../G.jpg", H: "../H.jpg", I: "../I.jpg", J: "../J.jpg",
+    K: "../K.jpg", L: "../L.jpg", M: "../M.jpg", N: "../N.jpg",
+    O: "../O.jpg", P: "../P.jpg", Q: "../Q.jpg", R: "../R.jpg",
+    S: "../S.jpg", T: "../T.jpg", U: "../U.jpg", V: "../V.jpg",
+    W: "../W.jpg", X: "../X.jpg", Y: "../Y.jpg", Z: "../Z.jpg"
+  };
   const referencePath = referenceImages[letter];
-  ui.referenceVisual.hidden = !referencePath || dynamic;
-  if (referencePath && !dynamic) {
+  ui.referenceVisual.hidden = !referencePath;
+  if (referencePath) {
     ui.referenceImage.src = referencePath;
     ui.referenceImage.alt = "Referência visual da configuração manual da letra " + letter + " em Libras";
     ui.referenceImage.onerror = () => { ui.referenceVisual.hidden = true; };
