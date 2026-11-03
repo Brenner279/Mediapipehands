@@ -65,7 +65,7 @@ let currentDescriptor = null;
 let currentLandmarks = null;
 let templates = loadTemplates();
 const imageTemplates = Object.create(null);
-const IMAGE_REFERENCE_LETTERS = { A: "../A.jpg", C: "../C.jpg", S: "../S.jpg" };
+const IMAGE_REFERENCE_LETTERS = { A: "../referencias-libras/A.jpg", C: "../referencias-libras/C.jpg", S: "../referencias-libras/S.jpg" };
 let recording = false;
 let recordingStarted = 0;
 let recordingSamples = [];
@@ -168,13 +168,13 @@ function render() {
   }
   ui.letter.textContent = letter;
   const referenceImages = {
-    A: "../A.jpg",
-    C: "../C.jpg", D: "../D.jpg", E: "../E.jpg", F: "../F.jpg",
-    G: "../G.jpg", H: "../H.jpg", I: "../I.jpg", J: "../J.jpg",
-    K: "../K.jpg", L: "../L.jpg", M: "../M.jpg", N: "../N.jpg",
-    O: "../O.jpg", P: "../P.jpg", Q: "../Q.jpg", R: "../R.jpg",
-    S: "../S.jpg", T: "../T.jpg", U: "../U.jpg", V: "../V.jpg",
-    W: "../W.jpg", X: "../X.jpg", Y: "../Y.jpg", Z: "../Z.jpg"
+    A: "../referencias-libras/A.jpg",
+    C: "../referencias-libras/C.jpg", D: "../referencias-libras/D.jpg", E: "../referencias-libras/E.jpg", F: "../referencias-libras/F.jpg",
+    G: "../referencias-libras/G.jpg", H: "../referencias-libras/H.jpg", I: "../referencias-libras/I.jpg", J: "../referencias-libras/J.jpg",
+    K: "../referencias-libras/K.jpg", L: "../referencias-libras/L.jpg", M: "../referencias-libras/M.jpg", N: "../referencias-libras/N.jpg",
+    O: "../referencias-libras/O.jpg", P: "../referencias-libras/P.jpg", Q: "../referencias-libras/Q.jpg", R: "../referencias-libras/R.jpg",
+    S: "../referencias-libras/S.jpg", T: "../referencias-libras/T.jpg", U: "../referencias-libras/U.jpg", V: "../referencias-libras/V.jpg",
+    W: "../referencias-libras/W.jpg", X: "../referencias-libras/X.jpg", Y: "../referencias-libras/Y.jpg", Z: "../referencias-libras/Z.jpg"
   };
   const referencePath = referenceImages[letter];
   ui.referenceVisual.hidden = !referencePath;
