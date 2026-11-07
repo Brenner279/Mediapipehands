@@ -1,0 +1,20 @@
+{
+  "name": "Libras em Prática",
+  "short_name": "Libras",
+  "description": "Aplicativo educativo para praticar o alfabeto manual da Libras.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fc",
+  "theme_color": "#101b36",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
