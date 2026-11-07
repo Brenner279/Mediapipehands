@@ -6,7 +6,22 @@
   <meta name="theme-color" content="#101a35">
   <meta name="description" content="Aprenda e pratique o alfabeto manual da Libras com referências visuais e acompanhamento por câmera.">
   <title>Libras em Prática — Alfabeto Manual</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="stylesheet" href="./styles.css">
+  <script>
+    if ("serviceWorker" in navigator) {
+      let reloadAfterControl = true;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!reloadAfterControl) return;
+        reloadAfterControl = false;
+        location.reload();
+      });
+      navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+        .catch(error => console.error("Falha ao preparar o modo offline:", error));
+    }
+  </script>
   <script type="module" src="./app.js"></script>
 </head>
 <body>
