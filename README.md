@@ -1,50 +1,68 @@
-# Libras em Prática — Datilologia
+# Libras em Prática — PWA e Datilologia
 
-Aplicação web educativa para praticar a sequência de letras de um nome ou palavra em Libras. O sistema exibe instruções de estudo, abre a câmera e utiliza o **MediaPipe Hand Landmarker** para localizar os 21 pontos de referência da mão.
+Aplicação educativa instalável para praticar o alfabeto manual da Libras. O navegador utiliza o **MediaPipe Hand Landmarker** para localizar os 21 pontos de referência da mão e comparar poses geometricamente.
 
-## Abrir a aplicação
+## Aplicativo no Chromebook
 
-A página é estática: não exige Node.js, npm, instalação de dependências ou servidor de backend.
+O projeto é um **Progressive Web App (PWA)**. No Chromebook, abra o endereço HTTPS do GitHub Pages no Google Chrome e use a opção **Instalar Libras em Prática** no ícone de instalação da barra de endereço ou em **⋮ → Transmitir, salvar e compartilhar → Instalar página como app** (o texto pode variar conforme a versão do ChromeOS).
 
-- **GitHub Pages:** abra o endereço principal do repositório; o aplicativo é servido diretamente pela página inicial.
-- **No computador:** na raiz do repositório, execute `python -m http.server 8000`. Depois, abra `http://localhost:8000`.
-- A câmera exige uma origem segura: HTTPS ou localhost. Não abra o arquivo HTML diretamente pelo gerenciador de arquivos.
+Depois de instalado, o aplicativo aparece no iniciador do ChromeOS e pode abrir em uma janela própria.
 
-É necessária conexão com a internet na primeira utilização para carregar o módulo, os arquivos WebAssembly e o modelo oficial do MediaPipe. Depois de carregados, o processamento dos quadros da câmera ocorre no próprio navegador.
+## Primeiro carregamento e uso totalmente offline
+
+A primeira abertura deve acontecer com internet. O service worker prepara o armazenamento local e baixa:
+- interface, estilos, manifesto e ícone;
+- imagens de referência A–Z;
+- biblioteca MediaPipe Tasks Vision 1.2.0;
+- arquivos WebAssembly (SIMD e fallback sem SIMD);
+- modelo oficial Hand Landmarker.
+
+A preparação pode levar alguns minutos, dependendo da conexão. O service worker só assume a página depois que os recursos obrigatórios forem armazenados. Ao terminar a instalação inicial, feche e abra o aplicativo novamente. Depois disso, a interface, as referências, o modelo e o reconhecimento de mãos são executados sem internet.
+
+**Atenção:** não limpe os dados do site/aplicativo nem os dados de navegação do Chrome, pois isso pode apagar os arquivos offline. Atualizações publicadas no GitHub Pages precisam ser carregadas enquanto o Chromebook estiver conectado à internet.
+
+## Câmera e privacidade
+
+A câmera exige autorização e uma origem segura (HTTPS ou localhost). O vídeo é processado no próprio Chromebook; não é enviado pelo aplicativo. As poses de referência pessoais ficam no armazenamento local do navegador.
 
 ## Como utilizar
 
-1. Digite seu nome ou uma palavra e selecione **Montar sequência**.
+1. Digite um nome ou palavra e selecione **Montar sequência**.
 2. Selecione **Ativar câmera** e permita o acesso.
-3. Posicione uma mão no enquadramento, com iluminação adequada.
-4. A aplicação exibe automaticamente a imagem de referência visual correspondente à letra atual, usando os arquivos de imagem da pasta `referencias-libras/`, localizada na raiz do repositório. A pasta contém as imagens de referência `A.jpg` até `Z.jpg`. As imagens são referências de estudo; somente A, C e S são atualmente utilizadas na tentativa de extração automática dos 21 pontos da mão pelo MediaPipe. Não é necessário gravar essas três letras manualmente quando a detecção na imagem for bem-sucedida.
-5. Depois de obter uma referência, não é necessário clicar em aceitar: ao detectar uma pose suficientemente semelhante por cerca de 1 segundo, o sistema avança automaticamente para a próxima letra. A aplicação também testa a comparação com orientação horizontal espelhada.
-6. As referências ficam salvas no navegador. Ao digitar novamente uma palavra com letras já calibradas, a prática acontece sem nova gravação.
-7. Para letras com movimento, execute o gesto e use a confirmação manual. A comparação estática não avalia trajetórias.
-8. O botão de avançar foi removido do fluxo normal para evitar pular letras sem que a pose seja reconhecida.
+3. Posicione a mão no enquadramento, com boa iluminação.
+4. Observe a referência visual da letra atual. As imagens estão na pasta `referencias-libras/`.
+5. Para letras com referência geométrica disponível, mantenha a pose até o sistema reconhecê-la e avançar.
+6. Para outras letras estáticas, grave uma referência pessoal usando a câmera.
+7. Para letras que envolvem movimento (Ç, H, J, X e Z), use a confirmação manual. O reconhecimento temporal de trajetórias não está implementado nesta versão.
 
-As referências pessoais ficam no armazenamento local do navegador. O aplicativo não grava nem envia vídeos da câmera.
+## Limites pedagógicos e técnicos
 
-## Limites importantes
-
-- **O MediaPipe Hand Landmarker detecta pontos da mão; não é, por si só, um tradutor ou classificador de Libras.**
-- Para **A, C e S**, o aplicativo tenta extrair landmarks diretamente das imagens do repositório. Isso depende de o MediaPipe detectar uma mão real e suficientemente nítida na imagem. Uma ilustração, desenho, mão parcialmente cortada ou imagem de baixa qualidade pode não gerar landmarks; nesse caso, o app informa que a referência está indisponível. Para outras letras estáticas, ainda há suporte a referência pessoal capturada pela câmera. A comparação geométrica não reconhece semanticamente a letra e não é uma avaliação linguística nem uma medida certificada de correção.
-- A comparação depende do enquadramento, da iluminação, da orientação da mão e da consistência da pose. Pessoas diferentes podem precisar gravar referências próprias.
-- Letras que envolvem movimento, como J e Z, exigem confirmação manual nesta versão. O reconhecimento temporal desses gestos ainda não está implementado.
-- As instruções textuais são lembretes introdutórios, não substituem imagens ou vídeos de referência. Configurações, orientação, movimento e variantes regionais devem ser conferidos com materiais didáticos confiáveis e pessoas surdas/profissionais fluentes em Libras.
+- O **Hand Landmarker detecta pontos da mão**; não é, por si só, um tradutor nem um classificador semântico de Libras.
+- As imagens A–Z são referências visuais. Somente A, C e S são atualmente utilizadas na tentativa de extração automática de landmarks; o resultado depende da qualidade e do enquadramento da imagem.
+- A comparação de poses é geométrica, não uma avaliação linguística nem uma medida certificada de correção.
+- Pessoas diferentes podem precisar gravar referências próprias.
+- As configurações, orientações, movimentos e variantes regionais devem ser conferidos com materiais didáticos confiáveis e pessoas surdas/profissionais fluentes em Libras.
 - Não utilize este protótipo para avaliar proficiência, certificar aprendizagem ou traduzir conversas.
 
 ## Tecnologias
 
-- HTML, CSS e JavaScript moderno (ES Modules)
-- MediaPipe Tasks Vision — Hand Landmarker
+- HTML, CSS e JavaScript (ES Modules)
+- Progressive Web App: Web App Manifest e Service Worker
+- MediaPipe Tasks Vision 1.2.0
+- WebAssembly e modelo Hand Landmarker armazenados no cache local
 - Câmera via `navigator.mediaDevices.getUserMedia`
-- Armazenamento local do navegador (`localStorage`)
+- Armazenamento local do navegador (`localStorage` e Cache Storage)
 
-## Privacidade
+## Desenvolvimento local
 
-A aplicação usa a câmera somente após autorização explícita. O vídeo é processado no navegador pelo MediaPipe; os pontos da pose de referência são armazenados localmente no dispositivo. A biblioteca MediaPipe pode enviar métricas de utilização conforme a documentação e a política do fornecedor. Consulte a documentação do [Hand Landmarker para Web](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker/web_js).
+Para testar em computador, sirva a raiz do repositório por HTTPS ou localhost:
+
+```bash
+python -m http.server 8000
+```
+
+Acesse `http://localhost:8000`. A primeira preparação offline também precisa de internet para baixar a biblioteca, os arquivos WASM e o modelo.
 
 ## Créditos
 
-Projeto educacional independente para apoio à prática de datilologia em Libras. O alfabeto e suas descrições precisam de validação por pessoas surdas e profissionais de Libras antes de uso didático formal.
+Projeto educacional independente para apoio à prática de datilologia em Libras.
