@@ -8,6 +8,9 @@ on:
       - "app.js"
       - "styles.css"
       - "README.md"
+      - "manifest.webmanifest"
+      - "service-worker.js"
+      - "icons/**"
       - "referencias-libras/**"
       - ".github/workflows/publish-pages.yml"
   workflow_dispatch:
@@ -32,13 +35,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validar sintaxe JavaScript
-        run: node --check app.js
+        run: |
+          node --check app.js
+          node --check service-worker.js
 
       - name: Preparar arquivos do site
         run: |
           mkdir -p _site
-          cp index.html app.js styles.css README.md _site/
-          cp -R referencias-libras _site/
+          cp index.html app.js styles.css README.md manifest.webmanifest service-worker.js _site/
+          cp -R referencias-libras icons _site/
           touch _site/.nojekyll
 
       - name: Configurar GitHub Pages
