@@ -1,9 +1,9 @@
-const VISION_PACKAGE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0";
+const VISION_PACKAGE = new URL("./__mediapipe__/vision_bundle.mjs", import.meta.url).href;
 let FilesetResolver = null;
 let HandLandmarker = null;
 
-const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task";
-const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm";
+const MODEL_URL = new URL("./__mediapipe__/hand_landmarker.task", import.meta.url).href;
+const WASM_URL = new URL("./__mediapipe__/wasm", import.meta.url).href;
 const STORAGE_KEY = "libras-em-pratica-pose-templates-v1";
 const HOLD_MS = 950;
 const AUTO_ADVANCE_COOLDOWN_MS = 650;
@@ -346,7 +346,7 @@ async function startCamera() {
     ui.status.innerHTML = "<i></i> Câmera indisponível";
     ui.message.textContent = error && error.name === "NotAllowedError"
       ? "Acesso à câmera negado. Permita o uso da câmera nas configurações do navegador e tente novamente."
-      : "Não foi possível iniciar a câmera/modelo. Verifique a conexão e tente novamente. " + (error && error.message ? error.message : "");
+      : "Não foi possível iniciar a câmera ou carregar os recursos locais do MediaPipe. Abra o aplicativo uma vez conectado à internet para concluir a preparação offline. " + (error && error.message ? error.message : "");
   }
 }
 function stopCamera() {
