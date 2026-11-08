@@ -137,6 +137,10 @@ function render() {
       if (index > step) return;
       step = index;
       holdStarted = 0;
+      dynamicWindow = [];
+      dynamicMatchStreak = 0;
+      lastDynamicCompare = 0;
+      processDynamicMatch.lastEvaluation = 0;
       render();
     });
     ui.sequence.appendChild(chip);
@@ -267,6 +271,10 @@ ui.form.addEventListener("submit",event => {
   sequence = [...word];
   step = 0;
   holdStarted = 0;
+  dynamicWindow = [];
+  dynamicMatchStreak = 0;
+  lastDynamicCompare = 0;
+  processDynamicMatch.lastEvaluation = 0;
   render();
   ui.message.textContent = "Sequência pronta: " + word + ". Faça uma letra de cada vez.";
 });
@@ -276,6 +284,10 @@ ui.done.addEventListener("click",() => completeLetter("manual"));
 ui.repeatBtn.addEventListener("click",() => {
   step = 0;
   holdStarted = 0;
+  dynamicWindow = [];
+  dynamicMatchStreak = 0;
+  lastDynamicCompare = 0;
+  processDynamicMatch.lastEvaluation = 0;
   lastAutoAdvance = 0;
   render();
   ui.message.textContent = "Vamos novamente! Comece pela letra " + current() + ".";
@@ -289,7 +301,7 @@ ui.newWordBtn.addEventListener("click",() => {
 ui.clear.addEventListener("click",() => {
   const letter = current();
   if (!letter || !templates[letter]) return;
-  delete templates[letter]; saveTemplates(); holdStarted = 0; render();
+  delete templates[letter]; saveTemplates(); holdStarted = 0; dynamicWindow = []; dynamicMatchStreak = 0; render();
   ui.message.textContent = "Referência da letra " + letter + " apagada.";
 });
 ui.capture.addEventListener("click",() => {
@@ -383,6 +395,8 @@ function stopCamera() {
   recording = false;
   dynamicWindow = [];
   dynamicMatchStreak = 0;
+  lastDynamicCompare = 0;
+  processDynamicMatch.lastEvaluation = 0;
   ui.video.srcObject = null;
   ui.video.parentElement.classList.remove("active");
   const ctx = ui.canvas.getContext("2d");
