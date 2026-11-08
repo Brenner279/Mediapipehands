@@ -66,3 +66,20 @@ Acesse `http://localhost:8000`. A primeira preparação offline também precisa 
 ## Créditos
 
 Projeto educacional independente para apoio à prática de datilologia em Libras.
+
+
+## Aplicativo Android (APK de teste)
+
+O repositório também compila uma versão Android usando Capacitor. O APK inclui a interface, as referências visuais A–Z, a biblioteca MediaPipe, os arquivos WebAssembly e o modelo de detecção de mãos. Assim, a câmera e o reconhecimento não dependem do cache do Chrome nem de conexão com a internet após a instalação.
+
+A cada atualização dos arquivos principais, o GitHub Actions executa a compilação automaticamente. Para gerar manualmente:
+
+1. Abra a aba **Actions** do repositório.
+2. Selecione **Gerar APK Android — Libras em Prática**.
+3. Clique em **Run workflow** e aguarde o término com sucesso.
+4. Abra a execução concluída e baixe o artefato **Libras-em-Pratica-APK-debug**.
+5. Extraia o ZIP e instale o arquivo `app-debug.apk` no Android. Se solicitado, autorize a instalação de aplicativos dessa fonte.
+
+Na primeira abertura do APK, autorize o uso da câmera. O aplicativo usa o endereço local seguro do Capacitor e solicita a permissão de câmera do Android. O processamento da mão é feito no próprio aparelho.
+
+**Observação:** esta é uma compilação de depuração para testes, não uma versão assinada para publicação na Play Store. O APK precisa ser validado em aparelho Android real, especialmente a permissão de câmera, o desempenho do MediaPipe e a operação offline. As letras com movimento (Ç, H, J, X e Z) continuam usando confirmação manual, conforme os limites atuais do projeto.
