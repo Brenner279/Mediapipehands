@@ -197,7 +197,7 @@ function render() {
   ui.kind.textContent = dynamic ? "SINAL COM MOVIMENTO / VARIAÇÃO" : "CONFIGURAÇÃO PARA PRÁTICA";
   ui.kind.classList.toggle("dynamic",dynamic);
   ui.movement.hidden = !dynamic;
-  ui.movement.textContent = dynamic ? "Esta letra pode envolver movimento. A comparação estática não confirma sua execução; use a confirmação manual." : "";
+  ui.movement.textContent = dynamic ? "Este gesto é reconhecido pela trajetória da mão. Cadastre o movimento pela câmera para habilitar a comparação automática." : "";
   ui.templateState.textContent = imageTemplates[letter]
     ? "✓ Referência extraída automaticamente da imagem do repositório. Não é necessário gravar esta letra."
     : templates[letter]
