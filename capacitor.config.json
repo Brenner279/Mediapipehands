@@ -1,0 +1,11 @@
+{
+  "appId": "br.com.michelbrenner.librasempratica",
+  "appName": "Libras em Prática",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
