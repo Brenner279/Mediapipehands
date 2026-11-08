@@ -11,7 +11,9 @@
   <link rel="apple-touch-icon" href="./icons/icon.svg">
   <link rel="stylesheet" href="./styles.css">
   <script>
-    if ("serviceWorker" in navigator) {
+    // O APK usa os arquivos locais empacotados; o service worker é exclusivo do PWA web.
+    const runningInsideAndroidApp = location.protocol === "https:" && location.hostname === "localhost";
+    if (!runningInsideAndroidApp && "serviceWorker" in navigator) {
       let reloadAfterControl = true;
       navigator.serviceWorker.addEventListener("controllerchange", () => {
         if (!reloadAfterControl) return;
