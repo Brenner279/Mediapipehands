@@ -1,0 +1,95 @@
+name: Gerar APK Android — Libras em Prática
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "app.js"
+      - "styles.css"
+      - "manifest.webmanifest"
+      - "icons/**"
+      - "referencias-libras/**"
+      - "package.json"
+      - "capacitor.config.json"
+      - ".github/workflows/build-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Compilar APK de teste
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Instalar dependências Capacitor
+        run: npm install
+
+      - name: Preparar arquivos web do aplicativo
+        shell: bash
+        run: |
+          mkdir -p www/__mediapipe__/wasm
+          cp index.html app.js styles.css manifest.webmanifest www/
+          cp -R icons referencias-libras www/
+          curl -fL --retry 3 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/vision_bundle.mjs" -o www/__mediapipe__/vision_bundle.mjs
+          curl -fL --retry 3 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm/vision_wasm_internal.js" -o www/__mediapipe__/wasm/vision_wasm_internal.js
+          curl -fL --retry 3 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm/vision_wasm_internal.wasm" -o www/__mediapipe__/wasm/vision_wasm_internal.wasm
+          curl -fL --retry 3 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm/vision_wasm_nosimd_internal.js" -o www/__mediapipe__/wasm/vision_wasm_nosimd_internal.js
+          curl -fL --retry 3 "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm/vision_wasm_nosimd_internal.wasm" -o www/__mediapipe__/wasm/vision_wasm_nosimd_internal.wasm
+          curl -fL --retry 3 "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task" -o www/__mediapipe__/hand_landmarker.task
+          test -s www/__mediapipe__/hand_landmarker.task
+          test -s www/__mediapipe__/wasm/vision_wasm_internal.wasm
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Sincronizar aplicativo
+        run: npx cap sync android
+
+      - name: Declarar permissão de câmera
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("android/app/src/main/AndroidManifest.xml")
+          xml = path.read_text()
+          permission = '    <uses-permission android:name="android.permission.CAMERA" />\n'
+          feature = '    <uses-feature android:name="android.hardware.camera" android:required="false" />\n'
+          if "android.permission.CAMERA" not in xml:
+              xml = xml.replace("<application", permission + feature + "    <application", 1)
+          path.write_text(xml)
+          PY
+
+      - name: Compilar APK de depuração
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Disponibilizar APK para teste
+        uses: actions/upload-artifact@v4
+        with:
+          name: Libras-em-Pratica-APK-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
