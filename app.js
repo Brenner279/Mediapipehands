@@ -8,6 +8,9 @@ const STORAGE_KEY = "libras-em-pratica-pose-templates-v1";
 const HOLD_MS = 950;
 const AUTO_ADVANCE_COOLDOWN_MS = 650;
 const MATCH_LIMIT = 0.17;
+const DYNAMIC_FRAME_COUNT = 32;
+const DYNAMIC_MATCH_LIMIT = 0.19;
+const DYNAMIC_MATCH_STREAK = 3;
 const DYNAMIC = new Set(["Ç", "H", "J", "X", "Z"]);
 const LETTERS = {
   A:["Punho com polegar ao lado","Feche os quatro dedos sobre a palma e mantenha o polegar posicionado ao lado do indicador."],
@@ -70,6 +73,9 @@ let recording = false;
 let recordingStarted = 0;
 let recordingSamples = [];
 let lastSampleAt = 0;
+let dynamicWindow = [];
+let dynamicMatchStreak = 0;
+let lastDynamicCompare = 0;
 let holdStarted = 0;
 let holdLetter = "";
 let lastAutoAdvance = 0;
@@ -197,18 +203,22 @@ function render() {
     : templates[letter]
       ? "✓ Referência pessoal gravada. Faça a pose correta; ao reconhecê-la, o sistema avançará sozinho."
       : "Aguardando referência automática da imagem ou uma referência pessoal.";
-  ui.capture.disabled = !stream || dynamic || Boolean(imageTemplates[letter]);
+  ui.capture.disabled = !stream || Boolean(imageTemplates[letter]);
   ui.capture.hidden = Boolean(imageTemplates[letter]);
-  ui.capture.textContent = getTemplate(letter)
-    ? "↻ Regravar referência da letra " + letter
-    : "＋ Gravar referência da letra " + letter;
+  ui.capture.textContent = dynamic
+    ? (templates[letter] && templates[letter].type === "dynamic" ? "↻ Regravar movimento da letra " + letter : "＋ Cadastrar movimento da letra " + letter)
+    : (getTemplate(letter) ? "↻ Regravar referência da letra " + letter : "＋ Gravar referência da letra " + letter);
   ui.clear.disabled = !templates[letter];
+  ui.clear.textContent = dynamic ? "Apagar movimento" : "Apagar referência";
   if (dynamic) {
     ui.done.hidden = false;
-    ui.matchLabel.textContent = "Movimento exige confirmação";
-    ui.matchPercent.textContent = "MOV.";
+    ui.done.textContent = "Confirmar manualmente ✓";
+    ui.matchLabel.textContent = templates[letter] && templates[letter].type === "dynamic" ? "Movimento cadastrado" : "Cadastro de movimento necessário";
+    ui.matchPercent.textContent = templates[letter] && templates[letter].type === "dynamic" ? "PRONTO" : "MOV.";
     ui.matchFill.style.width = "0%";
-    ui.matchHelp.textContent = "Esta letra envolve movimento. O reconhecimento temporal ainda não está implementado; execute o gesto e confirme manualmente.";
+    ui.matchHelp.textContent = templates[letter] && templates[letter].type === "dynamic"
+      ? "Faça o movimento completo diante da câmera. O aplicativo compara a trajetória com a referência salva."
+      : "Ative a câmera e clique em Cadastrar movimento. Execute o gesto durante a gravação para criar sua referência."; 
   } else if (getTemplate(letter)) {
     ui.done.hidden = true;
     ui.matchLabel.textContent = "Aguardando a letra " + letter;
@@ -228,6 +238,10 @@ function render() {
 function move(delta) {
   step = Math.max(0,Math.min(sequence.length,step + delta));
   holdStarted = 0;
+  dynamicWindow = [];
+  dynamicMatchStreak = 0;
+  lastDynamicCompare = 0;
+  processDynamicMatch.lastEvaluation = 0;
   render();
 }
 function completeLetter(source = "manual") {
@@ -279,11 +293,21 @@ ui.clear.addEventListener("click",() => {
   ui.message.textContent = "Referência da letra " + letter + " apagada.";
 });
 ui.capture.addEventListener("click",() => {
-  if (!stream || !currentDescriptor || DYNAMIC.has(current())) return;
-  recording = true; recordingStarted = performance.now(); lastSampleAt = 0; recordingSamples = [];
+  if (!stream || !currentDescriptor) return;
+  recording = true;
+  recordingStarted = performance.now();
+  lastSampleAt = 0;
+  recordingSamples = [];
+  dynamicWindow = [];
+  dynamicMatchStreak = 0;
   ui.capture.disabled = true;
-  ui.capture.textContent = "Gravando… mantenha a pose";
-  ui.message.textContent = "Mantenha a configuração da letra " + current() + " estável por 1,5 segundo.";
+  if (DYNAMIC.has(current())) {
+    ui.capture.textContent = "Gravando movimento…";
+    ui.message.textContent = "Execute o movimento completo da letra " + current() + " durante aproximadamente 2,5 segundos, mantendo a mão visível.";
+  } else {
+    ui.capture.textContent = "Gravando… mantenha a pose";
+    ui.message.textContent = "Mantenha a configuração da letra " + current() + " estável por 1,5 segundo.";
+  }
 });
 
 async function startCamera() {
@@ -357,6 +381,8 @@ function stopCamera() {
   if (landmarker) landmarker.close();
   landmarker = null;
   recording = false;
+  dynamicWindow = [];
+  dynamicMatchStreak = 0;
   ui.video.srcObject = null;
   ui.video.parentElement.classList.remove("active");
   const ctx = ui.canvas.getContext("2d");
@@ -366,7 +392,7 @@ function stopCamera() {
   ui.cameraBtn.disabled = false;
   ui.stopBtn.disabled = true;
   ui.capture.disabled = true;
-  ui.capture.textContent = "＋ Gravar pose desta letra";
+  ui.capture.textContent = "＋ Gravar referência da letra atual";
   ui.handBadge.textContent = "0 mãos detectadas";
   ui.fingers.innerHTML = ["Polegar","Indicador","Médio","Anelar","Mínimo"].map(name => '<span class="finger-chip">' + name + ' <b>—</b></span>').join("");
   ui.matchLabel.textContent = "Câmera desligada";
@@ -419,12 +445,119 @@ function fingerStatus(landmarks) {
     return '<span class="finger-chip">' + name + ' <b>' + (extended ? "aberto" : "flexionado") + '</b></span>';
   }).join("");
 }
+function motionFrame(landmarks) {
+  const handShape = descriptor(landmarks);
+  const wrist = landmarks[0];
+  return [...handShape, wrist.x, wrist.y, wrist.z];
+}
+function resampleSequence(sequence, count) {
+  if (!sequence.length) return [];
+  if (sequence.length === 1) return Array.from({length:count}, () => sequence[0].slice());
+  return Array.from({length:count}, (_,index) => {
+    const position = index * (sequence.length - 1) / (count - 1);
+    const left = Math.floor(position);
+    const right = Math.min(sequence.length - 1, left + 1);
+    const fraction = position - left;
+    return sequence[left].map((value,feature) => value + (sequence[right][feature] - value) * fraction);
+  });
+}
+function normalizeMotionSequence(sequence) {
+  const frames = sequence.map(frame => frame.slice());
+  const startX = frames[0][63], startY = frames[0][64], startZ = frames[0][65];
+  let extent = 0;
+  frames.forEach(frame => {
+    const dx = frame[63] - startX, dy = frame[64] - startY, dz = frame[65] - startZ;
+    extent = Math.max(extent, Math.sqrt(dx*dx + dy*dy + dz*dz));
+  });
+  const scale = Math.max(extent, 0.035);
+  frames.forEach(frame => {
+    frame[63] = (frame[63] - startX) / scale;
+    frame[64] = (frame[64] - startY) / scale;
+    frame[65] = (frame[65] - startZ) / scale;
+  });
+  return frames;
+}
+function motionFrameDistance(a,b) {
+  let handSum = 0;
+  for (let i=0;i<63;i++) handSum += (a[i]-b[i]) ** 2;
+  let pathSum = 0;
+  for (let i=63;i<66;i++) pathSum += (a[i]-b[i]) ** 2;
+  return Math.sqrt(handSum/63) * 0.75 + Math.sqrt(pathSum/3) * 0.25;
+}
+function dynamicTimeWarping(first, second) {
+  const a = normalizeMotionSequence(resampleSequence(first, DYNAMIC_FRAME_COUNT));
+  const b = normalizeMotionSequence(resampleSequence(second, DYNAMIC_FRAME_COUNT));
+  const n = a.length, m = b.length;
+  const matrix = Array.from({length:n+1}, () => Array(m+1).fill(Infinity));
+  matrix[0][0] = 0;
+  const band = 8;
+  for (let i=1;i<=n;i++) {
+    for (let j=Math.max(1,i-band);j<=Math.min(m,i+band);j++) {
+      matrix[i][j] = motionFrameDistance(a[i-1],b[j-1]) + Math.min(matrix[i-1][j],matrix[i][j-1],matrix[i-1][j-1]);
+    }
+  }
+  return matrix[n][m] / (n + m);
+}
+function processDynamicMatch(now, letter) {
+  const saved = templates[letter];
+  if (!saved || saved.type !== "dynamic" || !saved.frames || saved.frames.length < 8) {
+    dynamicWindow = [];
+    dynamicMatchStreak = 0;
+    ui.matchLabel.textContent = "Movimento ainda não cadastrado";
+    ui.matchPercent.textContent = "—";
+    ui.matchFill.style.width = "0%";
+    ui.matchHelp.textContent = "Ative a câmera e use Cadastrar movimento da letra " + letter + " para criar a referência."; 
+    return;
+  }
+  if (!currentLandmarks) {
+    dynamicWindow = [];
+    dynamicMatchStreak = 0;
+    ui.matchLabel.textContent = "Mão não detectada";
+    ui.matchPercent.textContent = "—";
+    ui.matchFill.style.width = "0%";
+    ui.matchHelp.textContent = "Mostre a mão à câmera e mantenha o movimento dentro da área visível.";
+    return;
+  }
+  if (dynamicWindow.length === 0 || now - (dynamicWindow[dynamicWindow.length-1].time || 0) > 500) {
+    // O intervalo é controlado abaixo; a lista guarda somente os vetores de movimento.
+  }
+  if (!lastDynamicCompare || now - lastDynamicCompare >= 75) {
+    dynamicWindow.push(motionFrame(currentLandmarks));
+    if (dynamicWindow.length > DYNAMIC_FRAME_COUNT) dynamicWindow.shift();
+    lastDynamicCompare = now;
+  }
+  if (dynamicWindow.length < DYNAMIC_FRAME_COUNT || now - lastDynamicCompare < 0) return;
+  if (now - processDynamicMatch.lastEvaluation < 220) return;
+  processDynamicMatch.lastEvaluation = now;
+  const score = dynamicTimeWarping(dynamicWindow, saved.frames);
+  const confidence = Math.max(0,Math.min(100,Math.round((1 - score / 0.34) * 100)));
+  ui.matchPercent.textContent = confidence + "%";
+  ui.matchFill.style.width = confidence + "%";
+  if (score <= DYNAMIC_MATCH_LIMIT) {
+    dynamicMatchStreak++;
+    ui.matchLabel.textContent = "Movimento da letra " + letter + " reconhecido";
+    ui.matchHelp.textContent = "Correspondência temporal detectada. Continue executando o gesto para confirmar.";
+    if (dynamicMatchStreak >= DYNAMIC_MATCH_STREAK && now - lastAutoAdvance > AUTO_ADVANCE_COOLDOWN_MS) {
+      lastAutoAdvance = now;
+      dynamicWindow = [];
+      dynamicMatchStreak = 0;
+      lastDynamicCompare = 0;
+      completeLetter("automatic");
+    }
+  } else {
+    dynamicMatchStreak = 0;
+    ui.matchLabel.textContent = "Analisando movimento da letra " + letter;
+    ui.matchHelp.textContent = "Repita a trajetória cadastrada com a mão visível. Se necessário, regrave a referência com melhor iluminação e movimento completo.";
+  }
+}
+processDynamicMatch.lastEvaluation = 0;
+
 function processMatch(now) {
   const letter = current();
   if (!letter) { holdStarted = 0; return; }
   if (DYNAMIC.has(letter)) {
     holdStarted = 0;
-    ui.matchLabel.textContent = "Movimento exige confirmação";
+    processDynamicMatch(now, letter);
     return;
   }
   if (!currentDescriptor) {
@@ -482,9 +615,11 @@ function loop(now) {
       ui.handBadge.textContent = (result.landmarks ? result.landmarks.length : 0) + (result.landmarks && result.landmarks.length === 1 ? " mão detectada" : " mãos detectadas");
       ui.fingers.innerHTML = hand ? fingerStatus(hand) : ["Polegar","Indicador","Médio","Anelar","Mínimo"].map(name => '<span class="finger-chip">' + name + ' <b>—</b></span>').join("");
       if (recording && currentDescriptor && now-lastSampleAt >= 75) {
-        recordingSamples.push(currentDescriptor.slice()); lastSampleAt = now;
+        recordingSamples.push(DYNAMIC.has(current()) ? motionFrame(hand) : currentDescriptor.slice());
+        lastSampleAt = now;
       }
-      if (recording && now-recordingStarted >= 1500) finishRecording();
+      const recordingDuration = DYNAMIC.has(current()) ? 2600 : 1500;
+      if (recording && now-recordingStarted >= recordingDuration) finishRecording();
       processMatch(now);
     } catch (error) {
       ui.message.textContent = "Falha ao analisar o quadro da câmera: " + error.message;
@@ -497,16 +632,18 @@ function finishRecording() {
   const letter = current();
   if (recordingSamples.length < 5) {
     ui.message.textContent = "Não houve amostras suficientes. Posicione a mão e tente gravar novamente.";
+  } else if (DYNAMIC.has(letter)) {
+    templates[letter] = { type:"dynamic", frames:resampleSequence(recordingSamples, DYNAMIC_FRAME_COUNT) };
+    saveTemplates();
+    ui.message.textContent = "Movimento da letra " + letter + " cadastrado com " + recordingSamples.length + " amostras. Faça o gesto novamente para testar o reconhecimento.";
+    dynamicWindow = [];
+    dynamicMatchStreak = 0;
   } else {
     templates[letter] = average(recordingSamples);
     saveTemplates();
     ui.message.textContent = "Referência da letra " + letter + " gravada. Agora mantenha a pose diante da câmera para comparar.";
   }
   recordingSamples = [];
-  ui.capture.textContent = templates[current()]
-    ? "↻ Regravar referência da letra " + current()
-    : "＋ Gravar referência da letra " + current();
-  ui.capture.disabled = !stream || DYNAMIC.has(current());
   holdStarted = 0;
   render();
 }
